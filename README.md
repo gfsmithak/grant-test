@@ -1,4 +1,3 @@
 # grant-test
-Test Repository
+Test Repository for misc. scripts
 
-Testing
