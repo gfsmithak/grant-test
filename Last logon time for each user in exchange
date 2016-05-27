@@ -1,0 +1,1 @@
+get-mailbox | foreach {get-mailboxstatistics $_.name | select displayname,lastlogontime | sort lastlogontime}
