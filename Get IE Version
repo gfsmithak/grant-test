@@ -1,0 +1,1 @@
+get-adcomputer -filter * | foreach {$reg=[microsoft.win32.registrykey]::openremotebasekey('localmachine', $_.name) ; $regkey=$reg.opensubkey("software\\microsoft\\internet explorer") ; $regkey.getvalue("svcversion"),$_.name | out-file C:\test.txt -append }
