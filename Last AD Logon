@@ -1,0 +1,1 @@
+ $user=get-aduser -filter * -properties "name","lastlogon" | select -property "name",@{name="lastlogon";expression={[datetime]::fromfiletime($_."lastlogon")}} | sort name
