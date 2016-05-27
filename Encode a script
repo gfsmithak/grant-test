@@ -1,0 +1,5 @@
+$code= {
+Your script here
+}
+
+[convert]::tobase64string([text.encoding]::unicode.getbytes($code))
