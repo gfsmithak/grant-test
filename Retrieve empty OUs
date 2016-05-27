@@ -1,0 +1,1 @@
+Get-ADOrganizationalUnit -Filter 'Name -like "*"' | Where { -not(Get-ADObject -Filter 'Name -like "*"' -SearchBase $_.DistinguishedName -SearchScope OneLevel -ResultSetSize 1 -ErrorAction SilentlyContinue)} | select DistinguishedName
