@@ -13,7 +13,7 @@ While ($true) {
 
 foreach ($path in $paths) {if (!(test-path $path.fullname)) {send-mailmessage -from $user -to $user -subject "Suspicious write activity on $env:COMPUTERNAME" -body "Canary at $env:COMPUTERNAME no longer exists" -credential ($cred) -usessl -smtpserver smtp.office365.com -port "587"} 
     
-    else {foreach ($path in $paths) {get-filehash -path $path.fullname -algorithm md5 | select -expandproperty hash | foreach {if ($_ -notmatch $referencehash) {send-mailmessage -from "gsmith@lmjconsulting.com" -to "gsmith@lmjconsulting.com" -subject "Suspicious write activity on $env:COMPUTERNAME" -body "Canary at $env:COMPUTERNAME has been written to" -credential ($cred) -usessl -smtpserver smtp.office365.com -port "587"}}}
+    else {foreach ($path in $paths) {get-filehash -path $path.fullname -algorithm md5 | select -expandproperty hash | foreach {if ($_ -notmatch $referencehash) {send-mailmessage -from $user -to $user -subject "Suspicious write activity on $env:COMPUTERNAME" -body "Canary at $env:COMPUTERNAME has been written to" -credential ($cred) -usessl -smtpserver smtp.office365.com -port "587"}}}
          
   sleep 60}}}
           
