@@ -1,0 +1,24 @@
+##PTH detection
+    ##replacementstrings: 5=username, 8 = logontype, 15 = lmpackagename.
+$PTH=get-eventlog security | where {$_.instanceid -eq "4624" -and $_.replacementstrings[5] -ne "anonymous logon" -and $_.replacementstrings[8] -eq "3" -and $_.replacementstrings[15] -eq "ntlm"}
+
+##RDP
+    ##Replacementstrings: 8=logontype, 11=authenticationpackagename
+$RDPLogon=get-eventlog security | where {$_.instanceid -eq "4624" -and $_.replacementstrings[8] -eq "10" -and $_.replacementstrings[11] -eq "negotiate"}
+$RDPLogoff=get-eventlog security | where {$_.instanceid -eq "4634" -and $_.replacementstrings[8] -eq "10"}
+
+##Failed Logins
+$FailedLogins=get-eventlog security | where {$_.instanceid -eq "4625"}
+
+$queries=
+    {$_.instanceid -eq "4624" -and $_.replacementstrings[5] -ne "anonymous logon" -and $_.replacementstrings[8] -eq "3" -and $_.replacementstrings[15] -eq "ntlm"},
+    {$_.instanceid -eq "4624" -and $_.replacementstrings[8] -eq "10" -and $_.replacementstrings[11] -eq "negotiate"},
+    {$_.instanceid -eq "4634" -and $_.replacementstrings[8] -eq "10"},
+    {$_.instanceid -eq "4625"}
+
+Foreach ($Q in $Queries) {
+    
+    $temp=get-eventlog security | where $Q
+    $temp | out-file C:\test.txt -append
+ }
+ 
