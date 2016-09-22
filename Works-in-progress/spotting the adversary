@@ -4,7 +4,7 @@ $PTH=get-eventlog security | where {$_.instanceid -eq "4624" -and $_.replacement
 
 ##RDP
     ##Replacementstrings: 8=logontype, 11=authenticationpackagename
-$RDPLogon=get-eventlog security | where {$_.instanceid -eq "4624" -and $_.replacementstrings[8] -eq "10" -and $_.replacementstrings[11] -eq "negotiate"}
+$RDPLogon=get-eventlog security | where {$_.instanceid -eq "4624" -and $_.replacementstrings[8] -eq "10" -and $_.replacementstrings[10] -eq "negotiate"}
 $RDPLogoff=get-eventlog security | where {$_.instanceid -eq "4634" -and $_.replacementstrings[8] -eq "10"}
 
 ##Failed Logins
