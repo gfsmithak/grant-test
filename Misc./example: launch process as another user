@@ -1,0 +1,7 @@
+    net localgroup administrators /add test
+    $cred=get-credential ## enter the credentials of the account you want to run as
+    $app=start-process cmd -credential $cred -passthru
+    do {$process=get-process $app.name
+        If (!$process) {net localgroup administrators /delete test}
+
+       } Until (!$process)
