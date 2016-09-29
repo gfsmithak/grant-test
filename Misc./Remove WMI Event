@@ -1,0 +1,4 @@
+    Get-WmiObject __EventFilter -namespace root\subscription -filter "name like 'test%'" | Remove-WmiObject
+    Get-WmiObject CommandLineEventConsumer -Namespace root\subscription -filter "name like 'test%'" | Remove-WmiObject
+    $bindings=gwmi __filtertoconsumerbinding -namespace root\subscription
+    foreach ($B in $bindings) {if ($b.filter -like "*test*") {$B | remove-wmiobject}}
