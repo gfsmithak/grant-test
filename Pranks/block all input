@@ -1,0 +1,11 @@
+$signature = @"
+  [DllImport("user32.dll")]
+  public static extern bool BlockInput(bool fBlockIt);
+"@
+
+$block = Add-Type -MemberDefinition $signature -Name DisableInput -Namespace DisableInput -PassThru
+$unblock = Add-Type -MemberDefinition $signature -Name EnableInput -Namespace EnableInput -PassThru
+
+$block::BlockInput($true)
+Start-Sleep -Seconds 10
+$unblock::BlockInput($false)
