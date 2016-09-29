@@ -1,0 +1,7 @@
+$groups = get-distributiongroup
+foreach ($g in $groups){
+    $members=get-distributiongroupmember $G;
+    foreach ($M in $members) {if ($M.name -eq "$user") {remove-distributiongroupmember -identity $g -member $M -confirm:$false}
+    }
+    }
+ 
