@@ -1,0 +1,13 @@
+add-type @"
+    using system;
+    using system.runtime.interopservices;
+    public class userwindows {
+        [DLLImport("User32.dll")]
+        public static extern intptr GetForeGroundWindow();
+}
+"@
+$activehandle=[userwindows]::getforegroundwindow()
+
+$method='[dllimport("user32.dll")] public static extern bool EnableWindow(long hWnd, int bEnable);'
+add-type -MemberDefinition $method -name NativeMethods -namespace win32
+[win32.nativemethods]::enablewindow($activehandle, 1)
