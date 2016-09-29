@@ -1,0 +1,17 @@
+$serverPath="\\server12\Andar\Production\Bin\Andar.jar"
+$clientPath="C:\program files (x86)\Andar\production\Bin\Andar.jar"
+
+$ServerMD5=new-object -typename system.security.cryptography.md5cryptoserviceprovider
+$Serverhash=[system.bitconverter]::tostring($ServerMD5.computehash([system.io.file]::readallbytes($ServerPath)))
+
+$ClientMD5=new-object -typename system.security.cryptography.md5cryptoserviceprovider
+$ClientHash=[system.bitconverter]::tostring($ClientMD5.computehash([system.io.file]::readallbytes($ClientPath)))
+
+
+
+
+If ($serverhash -eq $Clienthash){
+    add-content ".\desktop\test.txt" $}
+    Else {
+        write-host "testing"
+        }
