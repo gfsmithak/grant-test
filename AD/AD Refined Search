@@ -1,0 +1,5 @@
+#Refined search, finds users but excludes the specified OUs and users
+
+$OUs=Get-adorganizationalunit -filter * | where {$ExcludedOU - notcontains $_.name}
+
+Foreach ($O in $OUs) {get-aduser -filter * -searchbase  $O.distinguishedname | where {$excludedusers -notcontains   $_.name} | select name}
