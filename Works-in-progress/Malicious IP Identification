@@ -1,0 +1,25 @@
+##queries against Senderbase right now, but senderbase locks you out fairly fast.
+
+    $CSV= "8.8.8.8","103.9.90.130"
+    $cookie=new-object system.net.cookie
+    $cookie.name = "tos_accepted"
+    $cookie.path = "/"
+    $cookie.value = "1330588800"
+    $cookie.domain = "www.senderbase.org"
+    $cookie.expires = "01/10/2026 09:15 AM"
+    $session=new-object microsoft.powershell.commands.webrequestsession
+    $session.cookies.add($cookie)
+    foreach ($Item in $CSV) {
+    
+    [string]$BaseUri     = "https://www.senderbase.org/lookup/?search_string=$Item"
+    [string]$ContentType = "application/json"
+    
+ 
+    $Headers=@{
+   }
+
+    $JSONResponse = Invoke-RestMethod -URI $BaseURI -Headers $Headers  -ContentType $ContentType -Method Get -websession $session 
+    
+    if ($JSONResponse -match {"good"}) {write-host $Item}
+    
+    }
