@@ -23,3 +23,21 @@
     if ($JSONResponse -match {"good"}) {write-host $Item}
     
     }
+
+##queries against AbuseIPDB
+    [string]$IP          = "$example
+    [string]$Authstring  = "$APIKey"
+    [string]$BaseUri     = "https://www.abuseipdb.com/check/$ip/json?key=$authstring"
+    [string]$ContentType = "application/json"
+    
+ 
+    $Headers=@{
+    
+   }
+
+    $JSONResponse = Invoke-RestMethod -URI $BaseURI -Headers $Headers  -ContentType $ContentType -Method Get
+    
+ 
+   if ($jsonresponse) {
+   write-host $jsonresponse
+   }
