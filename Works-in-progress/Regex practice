@@ -1,0 +1,13 @@
+$users=gwmi win32_loggedonuser | select -expandproperty antecedent | foreach {$_.split("=")[2].replace("`"", "")}
+
+$regex='(?<=\s+)\d+(?=\s+[a-z])'
+## (?<=\s+) says to search after any number of white spaces. (?=\s+[a-z]) says to search before any number of white spaces that are immediately followed
+##by a ltter. \d+ says we're looking for 1 or more numbers. All together, the above searches for any number(s) preceeded by at least 1 white space,
+##followed by at least 1 white space then any letter. If you look at the output of quser, the only text that matches those requirements are the sessionIDs.
+
+$sessionid = quser | select-string -allmatches $regex | % {logoff $_.matches.value}
+$sessionid.matches.value | foreach {write-host $_}
+
+
+$regex='(?<=more\.).*(?=\s+)'
+
