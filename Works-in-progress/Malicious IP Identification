@@ -1,4 +1,6 @@
-  function get-virustotal {
+   
+    
+    function get-virustotal {
     
     <#
      .Synopsis
@@ -27,7 +29,7 @@
     $body=@{
 
     'ip'     = "$IP"
-    'apikey' = "$Authstring"
+    'apikey' = "$APIKey"
     
 }
 
@@ -35,7 +37,7 @@
     
  
    if ($jsonresponse) {
-   write-host $jsonresponse
+   write-output $jsonresponse
    }
    }
 
@@ -70,7 +72,7 @@
     
  
    if ($jsonresponse) {
-   write-host "$IP has been reported in AbuseIP"
+   write-output "$IP has been reported in AbuseIP"
    }
    }
 
@@ -110,6 +112,8 @@
 
     $JSONResponse = Invoke-RestMethod -URI $BaseURI -Headers $Headers  -ContentType $ContentType -Method Get -websession $session 
     
-    if ($JSONResponse -match {"poor"}) {write-host "$IP has a poor reputation"}
+    if ($JSONResponse -match {"poor"}) {write-output "$IP has a poor reputation"}
     
     }
+
+   
