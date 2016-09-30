@@ -6,7 +6,7 @@
      .Synopsis
         Queries virustotal for any reports on the given IP
     .Description
-        Note: Currently this script will only pull existing reports for the IP. It will require you to have a VT API Key.
+        Currently this script will only pull existing reports for the IP. It will require you to have a VT API Key.
     .Example:
         get-virustotal -IP 8.8.8.8 -APIKey $VTAuth
     #>
