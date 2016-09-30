@@ -1,33 +1,64 @@
-##queries against Senderbase right now, but senderbase locks you out fairly fast.
-
-    $CSV= "8.8.8.8","103.9.90.130"
-    $cookie=new-object system.net.cookie
-    $cookie.name = "tos_accepted"
-    $cookie.path = "/"
-    $cookie.value = "1330588800"
-    $cookie.domain = "www.senderbase.org"
-    $cookie.expires = "01/10/2026 09:15 AM"
-    $session=new-object microsoft.powershell.commands.webrequestsession
-    $session.cookies.add($cookie)
-    foreach ($Item in $CSV) {
+  function get-virustotal {
     
-    [string]$BaseUri     = "https://www.senderbase.org/lookup/?search_string=$Item"
+    <#
+     .Synopsis
+        Queries virustotal for any reports on the given IP
+    .Description
+        Note: Currently this script will only pull existing reports for the IP. It will require you to have a VT API Key.
+    .Example:
+        get-virustotal -IP 8.8.8.8 -APIKey $VTAuth
+    #>
+
+    [cmdletbinding()]
+    Param (
+    [parameter(valuefrompipeline=$true)]
+    [string]$IP,
+    [parameter(valuefrompipeline=$true)]
+    [string]$APIKey
+    )
+    [string]$BaseUri     = "http://www.virustotal.com/vtapi/v2/ip-address/report"
     [string]$ContentType = "application/json"
     
  
     $Headers=@{
-   }
 
-    $JSONResponse = Invoke-RestMethod -URI $BaseURI -Headers $Headers  -ContentType $ContentType -Method Get -websession $session 
-    
-    if ($JSONResponse -match {"good"}) {write-host $Item}
-    
     }
 
-##queries against AbuseIPDB
-    [string]$IP          = "$example
-    [string]$Authstring  = "$APIKey"
-    [string]$BaseUri     = "https://www.abuseipdb.com/check/$ip/json?key=$authstring"
+    $body=@{
+
+    'ip'     = "$IP"
+    'apikey' = "$Authstring"
+    
+}
+
+    $JSONResponse = Invoke-RestMethod -URI $BaseURI -Headers $Headers -body $Body -ContentType $ContentType -Method Get
+    
+ 
+   if ($jsonresponse) {
+   write-host $jsonresponse
+   }
+   }
+
+    Function Get-AbuseIP {
+
+        <#
+        .Synopsis
+            Queries AbuseIP to see if a given IP is in their database
+        .Description
+            Checks to see if an IP has been reported for malicious activity. Requires an API Key.
+        .Example
+            Get-AbuseIP -IP 8.8.8.8 -APIKey $ABIPAuth
+        #>
+
+    [cmdletbinding()]
+    Param (
+    [parameter(valuefrompipeline=$true)]
+    [string]$IP,
+    [parameter(valuefrompipeline=$true)]
+    [string]$APIKey
+    )
+ 
+    [string]$BaseUri     = "https://www.abuseipdb.com/check/$ip/json?key=$APIkey"
     [string]$ContentType = "application/json"
     
  
@@ -39,5 +70,46 @@
     
  
    if ($jsonresponse) {
-   write-host $jsonresponse
+   write-host "$IP has been reported in AbuseIP"
    }
+   }
+
+    function get-SenderBaseRating {
+
+        <#
+        .Synopsis
+            Checks if a given IP has a poor reputation on Senderbase
+        .Description
+            Looks to see if the given IP has a poor reputation. Does not require an API Key. Keep in mind, Senderbase will
+            blacklist your IP very quickly. Best not to use this for large searches. 
+        .Example
+            get-SenderBaseRating -IP 8.8.8.8
+        #>
+
+    [cmdletbinding()]
+    param (
+    [parameter(valuefrompipeline=$true)]
+    [string]$IP
+    )
+    $cookie=new-object system.net.cookie
+    $cookie.name = "tos_accepted"
+    $cookie.path = "/"
+    $cookie.value = "1330588800"
+    $cookie.domain = "www.senderbase.org"
+    $cookie.expires = "01/10/2026 09:15 AM"
+    $session=new-object microsoft.powershell.commands.webrequestsession
+    $session.cookies.add($cookie)
+    
+    
+    [string]$BaseUri     = "https://www.senderbase.org/lookup/?search_string=$IP"
+    [string]$ContentType = "application/json"
+    
+ 
+    $Headers=@{
+   }
+
+    $JSONResponse = Invoke-RestMethod -URI $BaseURI -Headers $Headers  -ContentType $ContentType -Method Get -websession $session 
+    
+    if ($JSONResponse -match {"poor"}) {write-host "$IP has a poor reputation"}
+    
+    }
