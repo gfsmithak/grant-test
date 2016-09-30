@@ -1,4 +1,4 @@
-Function find-localadmin{
+
 $machines=read-host "please enter search parameters"   
 $path=read-host "please enter full save path for output file"
 $Targets=@()
@@ -8,4 +8,3 @@ $admins=$admins | select -expandproperty partcomponent | out-string ;
 $result=$admins | select-string '(domain.*)' -allmatches | % {$_.matches} | select value ;
 $result+$t | out-file $path -append}
 
-}
