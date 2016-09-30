@@ -14,13 +14,14 @@
     [cmdletbinding()]
     Param (
     [parameter(valuefrompipeline=$true)]
-    [string]$IP,
+    [string[]]$IP,
     [parameter(valuefrompipeline=$true)]
     [string]$APIKey
     )
     [string]$BaseUri     = "http://www.virustotal.com/vtapi/v2/ip-address/report"
     [string]$ContentType = "application/json"
     
+    foreach ($I in $IP) {
  
     $Headers=@{
 
@@ -28,7 +29,7 @@
 
     $body=@{
 
-    'ip'     = "$IP"
+    'ip'     = "$I"
     'apikey' = "$APIKey"
     
 }
@@ -38,6 +39,7 @@
  
    if ($jsonresponse) {
    write-output $jsonresponse
+   }
    }
    }
 
@@ -55,15 +57,16 @@
     [cmdletbinding()]
     Param (
     [parameter(valuefrompipeline=$true)]
-    [string]$IP,
+    [string[]]$IP,
     [parameter(valuefrompipeline=$true)]
     [string]$APIKey
     )
  
-    [string]$BaseUri     = "https://www.abuseipdb.com/check/$ip/json?key=$APIkey"
-    [string]$ContentType = "application/json"
     
- 
+    
+    foreach ($I in $IP) {
+    [string]$BaseUri     = "https://www.abuseipdb.com/check/$i/json?key=$APIkey"
+    [string]$ContentType = "application/json"
     $Headers=@{
     
    }
@@ -72,7 +75,8 @@
     
  
    if ($jsonresponse) {
-   write-output "$IP has been reported in AbuseIP"
+   write-output "$I has been reported in AbuseIP"
+   }
    }
    }
 
@@ -91,7 +95,7 @@
     [cmdletbinding()]
     param (
     [parameter(valuefrompipeline=$true)]
-    [string]$IP
+    [string[]]$IP
     )
     $cookie=new-object system.net.cookie
     $cookie.name = "tos_accepted"
@@ -102,8 +106,8 @@
     $session=new-object microsoft.powershell.commands.webrequestsession
     $session.cookies.add($cookie)
     
-    
-    [string]$BaseUri     = "https://www.senderbase.org/lookup/?search_string=$IP"
+    foreach ($I in $IP) {
+    [string]$BaseUri     = "https://www.senderbase.org/lookup/?search_string=$I"
     [string]$ContentType = "application/json"
     
  
@@ -112,8 +116,8 @@
 
     $JSONResponse = Invoke-RestMethod -URI $BaseURI -Headers $Headers  -ContentType $ContentType -Method Get -websession $session 
     
-    if ($JSONResponse -match {"poor"}) {write-output "$IP has a poor reputation"}
+    if ($JSONResponse -match {"poor"}) {write-output "$I has a poor reputation"}
     
     }
-
+    }
    
