@@ -14,11 +14,15 @@ $queries=
     {$_.instanceid -eq "4624" -and $_.replacementstrings[5] -ne "anonymous logon" -and $_.replacementstrings[8] -eq "3" -and $_.replacementstrings[15] -eq "ntlm"},
     {$_.instanceid -eq "4624" -and $_.replacementstrings[8] -eq "10" -and $_.replacementstrings[10] -eq "negotiate"},
     {$_.instanceid -eq "4634" -and $_.replacementstrings[8] -eq "10"},
-    {$_.instanceid -eq "4625"}
+    {$_.instanceid -eq "4625"},
+    {$_.instanceid -eq "4688"  -and $_.replacementstrings[1] -notmatch $env:computername -and $_.replacementstrings[5] -match "powershell" -or $_.replacementstrings[5] -match "CMD" -and $_.replacementstrings[1] -notmatch $env:computername}
 
+$SecLog=get-eventlog security 
 Foreach ($Q in $Queries) {
     
-    $temp=get-eventlog security | where $Q
-    $temp | out-file C:\test.txt -append
- }
+   $SecLog | where $Q | foreach {$object = $_ | select-object @{name="Event ID";Expression={$_.eventID}},@{name="timegenerated";Expression={$_.timegenerated}},@{name="Details";expression={$_.replacementstrings}}; 
+   $object | export-csv C:\test.csv -append
+   }
+   }
+ 
  
