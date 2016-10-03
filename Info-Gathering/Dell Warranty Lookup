@@ -1,0 +1,40 @@
+
+    Function Get-DellWarranty {
+    
+
+    <#
+        .Synopsis
+            Searches Dell's website for Warranty information
+        .Description
+            Enter a serial number (or import multiple via a CSV file) to retrieve warranty type, start/end date, and ship date. Outputs to a CSV file
+            saved to a specified location.
+        .Example
+            Get-DellWarranty -assettag $(import-csv C:\example.csv) -APIKey $APIKey -savepath C:\results.csv
+        #>
+
+
+    [cmdletbinding()]
+    Param (
+    [parameter(valuefrompipeline=$true,Mandatory=$true)]
+    [string[]]$AssetTag,
+    [parameter(valuefrompipeline=$true,Mandatory=$true)]
+    [string]$APIKey,
+    [parameter(valuefrompipeline=$true,Mandatory=$true)]
+    [string]$SavePath
+    )
+
+    Foreach ($A in $AssetTag){    
+    [string]$BaseUri     = "https://api.dell.com/support/assetinfo/v4/getassetwarranty/$($A)?apikey=$($APIKey)"
+    [string]$ContentType = "application/json"
+ 
+    $JSONResponse = Invoke-RestMethod -URI $BaseURI  -ContentType $ContentType -Method Get
+
+    
+    $data=$jsonresponse.assetwarrantyresponse.assetentitlementdata 
+    $data | foreach {$object = $_ | select-object @{Name="Warranty Description";Expression={$_.serviceleveldescription}},@{Name="StartDate";Expression={$_.startdate}},@{Name="EndDate";Expression={$_.enddate}},@{Name="Warranty Type";Expression={$_.entitlementtype}};
+    $object | add-member -type noteproperty -name "Asset Tag" -value $($A);
+    $object | add-member -type noteproperty -name "Ship Date" -value $($jsonresponse.assetwarrantyresponse.assetheaderdata.shipdate)
+    $object | export-csv $savepath -append -notypeinformation
+    }
+    }
+    }
