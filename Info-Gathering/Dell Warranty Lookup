@@ -7,7 +7,7 @@
             Searches Dell's website for Warranty information
         .Description
             Enter a serial number (or import multiple via a CSV file) to retrieve warranty type, start/end date, and ship date. Outputs to a CSV file
-            saved to a specified location.
+             a specified location.
         .Example
             Get-DellWarranty -assettag $(import-csv C:\example.csv) -APIKey $APIKey -savepath C:\results.csv
         #>
