@@ -2,4 +2,6 @@ $code= {
 Your script here
 }
 
-[convert]::tobase64string([text.encoding]::unicode.getbytes($code))
+encode: [convert]::tobase64string([text.encoding]::unicode.getbytes($code))
+
+decode: [system.text.encoding]::unicode.getstring([system.convert]::frombase64string("$bytes"))
