@@ -1,0 +1,10 @@
+##marks the named file for deletion on reboot. There are lots of other things this API call can do. 
+##See here: https://msdn.microsoft.com/en-us/library/windows/desktop/aa365240(v=vs.85).aspx
+
+$path="C:\test.txt"
+$CDef = @" 
+    [DllImport("kernel32.dll")] public static extern bool MoveFileEx(string lpExistingFileName, string lpNewFileName, int dwFlags); 
+"@
+$Method = Add-Type -Name MoveFileUtils -MemberDefinition $CDef -PassThru
+
+$method::MoveFileEx("$path", $(NULL), "0x00000004")
