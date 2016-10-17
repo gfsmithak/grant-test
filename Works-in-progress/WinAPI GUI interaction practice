@@ -1,0 +1,36 @@
+$activewindowDef = @'
+[DllImport("user32.dll")]
+public static extern IntPtr GetForegroundWindow();
+'@
+$GetActiveWindow=add-type -MemberDefinition $activewindowDef -name getactivewindow -passthru
+
+$MenuDef =  @'
+[DllImport("user32.dll")]
+public static extern IntPtr GetMenu(int hWnd);
+'@
+
+$GetMenu=add-type -memberdefinition $menuDef -name Menu -passthru
+
+$setFore = @'
+[DllImport("user32.dll")]
+public static extern bool SetForegroundWindow(IntPtr hWnd);
+'@
+
+$SetForeWindow=add-type -memberdefinition $setfore -name setforeground -passthru
+
+sleep 5
+$window=$getactivewindow::getforegroundwindow()
+$menu=$GetMenu::getmenu($window)
+$setactive::setactivewindow($menu)
+
+
+$app=start iexplore.exe -passthru
+sleep 1
+$handle=$app.mainwindowhandle
+
+$setforewindow::setforegroundwindow($handle)
+
+sleep 3
+[void][system.reflection.assembly]::loadwithpartialname("system.windows.forms")
+[system.windows.forms.sendkeys]::sendwait("%{x}")
+[system.windows.forms.sendkeys]::sendwait("{DOWN}")
