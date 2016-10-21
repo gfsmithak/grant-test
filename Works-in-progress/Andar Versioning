@@ -1,17 +1,23 @@
 $serverPath="\\server12\Andar\Production\Bin\Andar.jar"
 $clientPath="C:\program files (x86)\Andar\production\Bin\Andar.jar"
-
+try {
+new-eventlog -logname application -source "AndarInstaller"
+}
+catch { continue
+}
+if (test-path $serverpath) {
 $ServerMD5=new-object -typename system.security.cryptography.md5cryptoserviceprovider
 $Serverhash=[system.bitconverter]::tostring($ServerMD5.computehash([system.io.file]::readallbytes($ServerPath)))
-
+}
+else { exit
+}
+if (test-path $clientpath) {
 $ClientMD5=new-object -typename system.security.cryptography.md5cryptoserviceprovider
 $ClientHash=[system.bitconverter]::tostring($ClientMD5.computehash([system.io.file]::readallbytes($ClientPath)))
-
-
-
-
-If ($serverhash -eq $Clienthash){
-    add-content ".\desktop\test.txt" $}
-    Else {
-        write-host "testing"
-        }
+}
+else { exit
+}
+If ($serverhash -ne $Clienthash){
+write-eventlog -logname Application -source "AndarMonitor" -entrytype Information -EventID 1 -message "Andar is out of date!"}
+else { write-eventlog -logname Application -source "AndarMonitor" -entrytype Information -EventID 1 -message "Andar is not installed!"
+}
