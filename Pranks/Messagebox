@@ -1,0 +1,2 @@
+[system.reflection.assembly]::loadwithpartialname("system.windows.forms"
+[system.windows.forms.messagebox]::show("Would you like to play a game?")
