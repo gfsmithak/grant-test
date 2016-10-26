@@ -2,7 +2,7 @@ $FreezeDef = @'
 [DllImport("user32.dll")]
 public static extern bool EnableWindow(long hWnd, int bEnable);
 '@
-$Freeze=add-type -MemberDefinition $method -name NativeMethods -passthru
+$Freeze=add-type -MemberDefinition $FreezeDef -name NativeMethods -passthru
 
 $activewindowDef = @'
 [DllImport("user32.dll")]
