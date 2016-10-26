@@ -3,6 +3,37 @@ Logman update trace –n usbtrace –p Microsoft-Windows-USB-USBPort
 Logman start -n usbtrace
 Logman stop -n usbtrace
 
-$log=get-winevent –path C:\tracing\trace.etl –oldest | where {$_.message –match “Data”}
 
-Foreach ($L in $log) {write-host (‘{0:x}’ -f ($L.properties.value[5]))}
+$log=get-winevent –path "C:\windows\tracing\usbtrace2_000002.etl" –oldest | where {$_.message –match “Data”}
+
+$HID = Foreach ($L in $log) {(‘{0:x}’ -f ($L.properties.value[5]))}
+
+switch ($HID)
+{
+    4 {"A"}
+    5 {"B"}
+    6 {"C"}
+    7 {"D"}
+    8 {"E"}
+    9 {"F"}
+    A {"G"}
+    B {"H"}
+    C {"I"}
+    D {"J"}
+    E {"K"}
+    F {"L"}
+    10 {"M"}
+    11 {"N"}
+    12 {"O"}
+    13 {"P"}
+    14 {"Q"}
+    15 {"R"}
+    16 {"S"}
+    17 {"T"}
+    18 {"U"}
+    19 {"V"}
+    1A {"W"}
+    1B {"X"}
+    1C {"Y"}
+    1D {"Z"}
+}
