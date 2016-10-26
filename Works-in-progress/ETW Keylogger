@@ -3,6 +3,6 @@ Logman update trace –n usbtrace –p Microsoft-Windows-USB-USBPort
 Logman start -n usbtrace
 Logman stop -n usbtrace
 
-$log=get-winevent –path C:\tracing\trace.etl –oldest | where {$_.messgae –match “Data”}
+$log=get-winevent –path C:\tracing\trace.etl –oldest | where {$_.message –match “Data”}
 
 Foreach ($L in $log) {write-host (‘{0:x}’ -f ($L.properties.value[5]))}
