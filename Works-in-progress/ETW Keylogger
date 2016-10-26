@@ -5,4 +5,4 @@ Logman stop -n usbtrace
 
 $log=get-winevent –path C:\tracing\trace.etl –oldest | where {$_.messgae –match “Data”}
 
-Foreach ($L in $log) {write-host (‘{0:x}’ ($L.properties.value[5]))}
+Foreach ($L in $log) {write-host (‘{0:x}’ -f ($L.properties.value[5]))}
