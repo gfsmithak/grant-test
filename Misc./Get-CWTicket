@@ -1,0 +1,45 @@
+Function Get-CWTicket
+{
+    <#
+    .SYNOPSIS
+        Retrieves an object formatted ConnectWise Ticket.
+
+    .DESCRIPTION
+        Pass this function a ticket id and if the ticket exists it
+        will return you all the information. If it doesnt exist it 
+        will return $False.
+
+    .NOTES
+        N/A
+
+    .EXAMPLE
+        Get-CWTicket -TicketID '8675309'
+    #>
+    param
+    (
+        [Parameter(Mandatory = $true,Position = 0)]
+        [INT]$TicketID
+    )
+
+    [string]$BaseUri     = "https://api-na.myconnectwise.net/v4_6_release/apis/3.0/service/tickets/$ticketID"
+    [string]$Accept      = "application/vnd.connectwise.com+json; version=v2016_4"
+    [string]$ContentType = "application/json"
+    [string]$Authstring  = "lmj" + '+' + "7Kq21eykHzXLlvjR" + ':' + "CSiL9Px87m0iHIpk"
+    $encodedAuth         = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(($Authstring)));
+
+    $Headers=@{
+        "Authorization"="Basic $encodedAuth"
+        }
+
+    $JSONResponse = Invoke-RestMethod -URI $BaseURI -Headers $Headers  -ContentType $ContentType -Method Get
+
+    If($JSONResponse)
+    {
+        Return $JSONResponse
+    }
+
+    Else
+    {
+        Return $False
+    }
+}
