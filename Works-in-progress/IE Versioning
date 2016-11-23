@@ -1,0 +1,14 @@
+
+new-eventlog -logname application -source "LTQuery"
+
+if ((get-itemproperty "HKLM:\SOFTWARE\Microsoft\Internet Explorer" | select -expandproperty svcversion) -notmatch "11.0") {
+ 
+    write-eventlog -logname application -source "LTQuery" -entrytype information -eventid 1 -message "IE 11 Not Installed"
+
+    }
+else {
+    
+    write-eventlog -logname application -source "LTQuery" -entrytype information -eventid 2 -message "IE 11 Is Installed"
+
+    }
+
