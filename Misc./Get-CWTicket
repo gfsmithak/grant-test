@@ -24,7 +24,7 @@ Function Get-CWTicket
     [string]$BaseUri     = "https://api-na.myconnectwise.net/v4_6_release/apis/3.0/service/tickets/$ticketID"
     [string]$Accept      = "application/vnd.connectwise.com+json; version=v2016_4"
     [string]$ContentType = "application/json"
-    [string]$Authstring  = "lmj" + '+' + "7Kq21eykHzXLlvjR" + ':' + "CSiL9Px87m0iHIpk"
+    [string]$Authstring  = "lmj" + '+' + "--Redacted--" + ':' + "--Redacted--"
     $encodedAuth         = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(($Authstring)));
 
     $Headers=@{
