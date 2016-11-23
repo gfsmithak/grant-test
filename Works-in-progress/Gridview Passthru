@@ -1,0 +1,5 @@
+##Learned something cool today: out-gridview has a -passthru option that lets you select an item from the GUI. Example:
+
+$source = Get-PSDrive -PSProvider Filesystem | Out-Gridview -PassThru
+
+##$souce will equal whatever drive you highlight on the GUI.
