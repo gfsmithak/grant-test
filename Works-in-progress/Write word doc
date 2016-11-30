@@ -1,0 +1,8 @@
+##creates word docs named 1, 2 and 3 + writes 1/2/3 to the corresponding doc.
+
+$test="1","2","3"
+$word = New-Object -ComObject word.application
+$word.visible = $false
+foreach ($T in $test) {$word.visible=$false;$document=$word.documents.add();$selection=$word.selecti
+on;$selection.typetext("$T");$document.saveas("C:\$t.docx")}
+$word.quit()
