@@ -1,10 +1,19 @@
+//note: to get the regex class to work in netbeans I had to follow the instructions here: 
+//http://stackoverflow.com/questions/14867428/configuring-c11-in-netbeans
+
+
 #include <windows.h>
 #include <stdio.h>
 #include <tchar.h>
 #include <cstdlib>
 #include <iostream>
 #include <string>
+#include <fstream>
+#include <iterator>
+#include <regex>
+
 using namespace std;
+
         
 
 
@@ -30,7 +39,7 @@ void function(LPSTR cmd)
             &info,
             &processInfo
             );
-   //this will make the program pause until the window is closed - time = DWORD $Number
+   //this will make the program pause until the window is closed - time = DWORD $Number (or "INFINITE" in this case)
     WaitForSingleObject( processInfo.hProcess, INFINITE );
     CloseHandle( processInfo.hProcess );
     CloseHandle( processInfo.hThread );
@@ -47,17 +56,104 @@ void shell(void)
         );
 }
 
+/* This works but only finds the first match
+ * int filetest()
+{
+    string line;
+    ifstream inp;
+    ofstream out;
+    regex pattern("08\\s00\\s00\\s00\\s\\d+");
+    
+    inp.open("C:\\regexpractice.txt");
+    out.open("C:\\results.txt");   
+    if (inp.is_open())
+    {
+        while(inp.good())
+        {
+            smatch result;
+            getline(inp, line);                      
+            regex_search(line, result, pattern);                         
+            out << result.str() << endl;
+            
+        }
+    }
+    inp.close();
+    out.close();
+    return 0;
+}
+*/
+
+//this version actually finds all matches... in my practice file. Doesn't read the trace log though, still working on that part.
+int filetest()
+{
+    string line;
+    ifstream inp;
+    ofstream out;
+    regex pattern("08\\s00\\s00\\s00\\s\\d+");
+    
+    inp.open("C:\\trace_000001.etl");
+    out.open("C:\\results.txt");   
+    if (inp.is_open())
+    {
+        while(inp.good())
+        {
+           
+            getline(inp, line);
+            copy(sregex_token_iterator(line.begin(), line.end(), pattern),
+            sregex_token_iterator(),
+            ostream_iterator<string>(out, "\n"));
+       
+            
+            
+            
+        }
+    }
+    inp.close();
+    out.close();
+    return 0;
+}
+
+int test()
+{
+#define BUFFER_CAPACITY 512
+    unsigned char buffer[BUFFER_CAPACITY];
+    ifstream input_data("C:\\trace_000001.etl");
+    //ofstream out("C:\\results.txt");
+    input_data.read((unsigned char)&buffer[0], sizeof(buffer));
+   
+
+    return 0;
+}
+
+/*char stringmatch(string x)
+{
+    //string regex_string = "(?<=08\\s00\\s00\\s00\\s)\\d+(?=\\s00)";
+    regex pattern("(?<=08\\s00\\s00\\s00\\s)\\d+(?=\\s00)");
+    //regex_iterator it(x.begin;(), x.end(), pattern);
+    //regex_iterator it_end;
+    while(it != it_end)
+    {
+        cout << *it << endl;
+        ++it;
+    }
+          
+}
+*/
 int main()
 {   
-  
+    /* used these for testing*/
     //function("C://windows//notepad.exe \"C://test.txt\"",3000);
-    function("C://windows//system32//logman.exe create trace -n \"usbtrace\" -o \"C://trace.etl\" -nb \"128 640\" -bs \"128\"");
+    //shell();  
+    
+    /*logman function, grayed out for now to test log parsing
+     * function("C://windows//system32//logman.exe create trace -n \"usbtrace\" -o \"C://trace3.etl\" -nb \"128 640\" -bs \"128\"");
     function("C://windows//system32//logman.exe update trace -n \"usbtrace\" -p \"microsoft-windows-usb-usbport\"");
     function("C://windows//system32//logman.exe start -n usbtrace");
     Sleep(10000);
     function("C://windows//system32//logman.exe stop -n usbtrace");
     function("C://windows//system32//logman.exe delete -n usbtrace");
-    //shell();      
+     * */
+    //filetest();
+    test();
    
 }
-
