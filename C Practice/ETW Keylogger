@@ -1,7 +1,3 @@
-//note: to get the regex class to work in netbeans I had to follow the instructions here: 
-//http://stackoverflow.com/questions/14867428/configuring-c11-in-netbeans
-
-
 #include <windows.h>
 #include <stdio.h>
 #include <tchar.h>
@@ -82,17 +78,15 @@ void shell(void)
     return 0;
 }
 */
-
-//this version actually finds all matches... in my practice file. Doesn't read the trace log though, still working on that part.
 int filetest()
 {
     string line;
     ifstream inp;
     ofstream out;
-    regex pattern("08\\s00\\s00\\s00\\s\\d+");
+    regex pattern("8000(.{2})");
     
-    inp.open("C:\\trace_000001.etl");
-    out.open("C:\\results.txt");   
+    inp.open("C:\\results1.txt");
+    out.open("C:\\text.txt");   
     if (inp.is_open())
     {
         while(inp.good())
@@ -113,18 +107,34 @@ int filetest()
     return 0;
 }
 
-int test()
+
+ int test()
 {
-#define BUFFER_CAPACITY 512
-    unsigned char buffer[BUFFER_CAPACITY];
-    ifstream input_data("C:\\trace_000001.etl");
-    //ofstream out("C:\\results.txt");
-    input_data.read((unsigned char)&buffer[0], sizeof(buffer));
+//#define BUFFER_CAPACITY 512 ///512
+    unsigned char x;
+    ifstream data("C:\\trace_000001.etl", std::ios::binary);
+    ofstream out("C:\\results1.txt");
+    data >> std::noskipws;
+    while(data >> x)
+    {
+        out << hex << (int)x;
+    }
    
 
     return 0;
 }
 
+ /*
+int test2()
+{
+    const char *filename = "C:\\trace_000001.etl";
+    ifstream infile(filename, fstream::in);
+    ofstream out("C:\\results1.txt", fstream::out);
+    unsigned int a;
+    infile >> hex >> a;
+    out << hex << a;
+}
+  * /
 /*char stringmatch(string x)
 {
     //string regex_string = "(?<=08\\s00\\s00\\s00\\s)\\d+(?=\\s00)";
@@ -153,7 +163,8 @@ int main()
     function("C://windows//system32//logman.exe stop -n usbtrace");
     function("C://windows//system32//logman.exe delete -n usbtrace");
      * */
-    //filetest();
+ 
     test();
+    filetest();
    
 }
