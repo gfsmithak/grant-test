@@ -1,0 +1,106 @@
+#include <windows.h>
+#include <stdio.h>
+#include <tchar.h>
+#include <cstdlib>
+#include <iostream>
+#include <string>
+#include <fstream>
+#include <iterator>
+#include <regex>
+
+using namespace std;
+
+        
+
+
+void function(LPSTR cmd)
+{
+    STARTUPINFO info;
+    PROCESS_INFORMATION processInfo;
+    ZeroMemory(&info, sizeof(info));
+    info.cb= sizeof( info );
+    ZeroMemory(&processInfo, sizeof(processInfo));
+    info.dwFlags= STARTF_USESHOWWINDOW;
+    info.wShowWindow= SW_SHOWNORMAL;
+    
+    CreateProcess(
+            NULL, 
+            cmd,
+            NULL, 
+            NULL,
+            FALSE,
+            0,
+            NULL,
+            NULL,
+            &info,
+            &processInfo
+            );
+   //this will make the program pause until the window is closed - time = DWORD $Number (or "INFINITE" in this case)
+    WaitForSingleObject( processInfo.hProcess, INFINITE );
+    CloseHandle( processInfo.hProcess );
+    CloseHandle( processInfo.hThread );
+}
+
+int filetest()
+{
+    string line;
+    ifstream inp;
+    ofstream out;
+    regex pattern("8000(.{2})");
+    
+    inp.open("C:\\results1.txt");
+    out.open("C:\\text.txt");   
+    if (inp.is_open())
+    {
+        while(inp.good())
+        {
+           
+            getline(inp, line);
+            copy(sregex_token_iterator(line.begin(), line.end(), pattern),
+            sregex_token_iterator(),
+            ostream_iterator<string>(out, "\n"));
+       
+            
+            
+            
+        }
+    }
+    inp.close();
+    out.close();
+    return 0;
+}
+
+int test()
+{
+    unsigned char x;
+    ifstream data("C:\\trace_000001.etl", std::ios::binary);
+    ofstream out("C:\\results1.txt");
+    data >> std::noskipws;
+    while(data >> x)
+    {
+        out << hex << (int)x;
+    }
+   
+
+    return 0;
+}
+
+int main()
+{   
+    /* used these for testing*/
+    //function("C://windows//notepad.exe \"C://test.txt\"",3000);
+    //shell();  
+    
+    //USB capture
+    function("C://windows//system32//logman.exe create trace -n \"usbtrace\" -o \"C://trace3.etl\" -nb \"128 640\" -bs \"128\"");
+    function("C://windows//system32//logman.exe update trace -n \"usbtrace\" -p \"microsoft-windows-usb-usbport\"");
+    function("C://windows//system32//logman.exe start -n usbtrace");
+    Sleep(10000);
+    function("C://windows//system32//logman.exe stop -n usbtrace");
+    function("C://windows//system32//logman.exe delete -n usbtrace");
+    
+    //Parse logman output
+    test();
+    filetest();
+   
+}
