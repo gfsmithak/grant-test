@@ -128,7 +128,7 @@ string Convert()
     ifstream inp("C:\\Matches.txt");
     string data;
     getline(inp, data);
-    std::transform(std::istream_iterator<int> {istringstream { data } >> std::hex },
+    std::transform(istream_iterator<int> {istringstream { data } >> hex },
                    std::istream_iterator<int> { },
                    std::back_inserter(result),
                    [](int n) {try 
