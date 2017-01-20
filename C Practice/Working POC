@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 
 #include <windows.h>
 #include <stdio.h>
@@ -66,7 +61,8 @@ void StartApp(LPSTR cmd)
 
     return 0;
 }
-//Regex to pull out keystrokes
+//Regex to pull out keystrokes. An unmodified keypress can be identified by 
+//the string below, basically "8000000XX00", where XX is the HID code.
 int LogParse()
 {
     string line;
@@ -95,7 +91,7 @@ int LogParse()
     out.close();
     return 0;
 }
-
+//Converts HID -> standard characters
 string Convert()
 {
     static const std::unordered_map<int, char> keyvalues {
