@@ -1,6 +1,6 @@
 /*
-Wanted to find a way to detect crypto without relying on specific .net or event log settings. So far, the below will 
-write a message to the console if it detects ~15 writes within 1s on the target directory.
+Wanted to find a way to detect crypto without relying on specific .net or event log settings. So far, this will 
+write a message to the console if it detects ~20 writes within 1s on the target directory.
  */
 
 /* 
