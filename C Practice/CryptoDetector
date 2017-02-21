@@ -3,13 +3,6 @@ Wanted to find a way to detect crypto without relying on specific .net or event 
 write a message to the console if it detects ~20 writes within 1s on the target directory.
  */
 
-/* 
- * File:   main.cpp
- * Author: gsmith
- *
- * Created on February 20, 2017, 11:01 AM
- */
-
 #include <cstdlib>
 #include <windows.h>
 #include <stdio.h>
