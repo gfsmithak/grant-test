@@ -1,0 +1,76 @@
+/*
+Wanted to find a way to detect crypto without relying on specific .net or event log settings. So far, the below will 
+write a message to the console if it detects ~15 writes within 1s on the target directory.
+ */
+
+/* 
+ * File:   main.cpp
+ * Author: gsmith
+ *
+ * Created on February 20, 2017, 11:01 AM
+ */
+
+#include <cstdlib>
+#include <windows.h>
+#include <stdio.h>
+#include <tchar.h>
+#include <stdlib.h>
+#include <iostream>
+        
+using namespace std;
+
+/*
+ * 
+ */
+void Change( LPTSTR Path ) {
+    DWORD WaitStatus;       
+    printf("\nWaiting\n");
+    int i;
+    i = 0;
+    int x;
+    x = 0;
+    DWORD Timeout;
+    Timeout = 1000; 
+    while (TRUE) {
+        while (x < 10){
+            HANDLE handle = FindFirstChangeNotification(
+                Path,
+                FALSE,
+                FILE_NOTIFY_CHANGE_FILE_NAME
+                );
+            WaitStatus = WaitForSingleObject(
+            handle,
+            Timeout     
+            );
+            switch (WaitStatus){
+                case WAIT_OBJECT_0:
+                    //printf("\nSuccess\n");
+                    i++;
+                    x++;
+                    //cout << i;                
+                    break;
+                case WAIT_TIMEOUT:
+                    x++;
+                    break;
+                default:
+                    break;
+                          }
+        }
+        if (i > 9) {
+            printf("\nSuspicious writes detected!\n");
+            break;
+        }  
+        else {
+            x = 0;
+            i = 0;        
+            continue;
+        }
+
+}
+}
+
+int main(){
+    
+Change("C:\\test1");
+
+}
