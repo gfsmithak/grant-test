@@ -1,7 +1,9 @@
-/*
-Wanted to find a way to detect crypto without relying on specific .net or event log settings. So far, this will 
-write a message to the console if it detects ~20 writes within 1s on the target directory.
- */
+/* So far, the FindCrypt function will return the process ID of a given process IF the process has loaded crypt32.dll.
+The Change function triggers an arbitrary action if more than 20 file modifications are performed within < 1s. 
+Ultimately, Change -> FindCrypt -> as-yet undecided function to kill processes calling Crypt32. A shotgun approach is definitely
+not the most refined, but I think it will be the most reliable. Nothing essential to the OS will be calling Crypt32, so at a worst
+they'll just need to reboot.
+*/
 
 #include <cstdlib>
 #include <windows.h>
@@ -9,12 +11,48 @@ write a message to the console if it detects ~20 writes within 1s on the target 
 #include <tchar.h>
 #include <stdlib.h>
 #include <iostream>
+#include <psapi.h>
+#include <string>
         
 using namespace std;
 
 /*
  * 
  */
+
+int FindCrypt (DWORD input){
+    HMODULE hMods[1024];
+    HANDLE hProcess;
+    DWORD cbNeeded;
+    unsigned int i;
+    TCHAR Search[MAX_PATH] = _T("C:\\windows\\syswow64\\CRYPT32.dll");
+    bool x;    
+  
+    hProcess = OpenProcess (
+                PROCESS_QUERY_INFORMATION |
+                PROCESS_VM_READ,
+                FALSE, input);
+    EnumProcessModules(hProcess, hMods, sizeof(hMods), &cbNeeded);
+    for (i = 0; i < (cbNeeded / sizeof(HMODULE)); i++){
+            TCHAR szModName[MAX_PATH];   
+            GetModuleFileNameEx(hProcess, hMods[i], szModName, sizeof(szModName) / sizeof(TCHAR)); 
+             if (strcmp(szModName, Search) != 1) {    
+             //printf( TEXT ("\n%s(0x%08X)\n"), szModName, hMods[i]);
+              x = TRUE;
+                
+            }
+            }
+    if (x == TRUE){
+        return input;
+    }
+    else {
+        cout << "\nNope\n";
+    }       
+    CloseHandle( hProcess );
+    return 0;
+}
+
+
 void Change( LPTSTR Path ) {
     DWORD WaitStatus;       
     printf("\nWaiting\n");
@@ -28,6 +66,7 @@ void Change( LPTSTR Path ) {
         while (x < 10){
             HANDLE handle = FindFirstChangeNotification(
                 Path,
+                //Change this to "TRUE" to process subfolders
                 FALSE,
                 FILE_NOTIFY_CHANGE_FILE_NAME
                 );
@@ -64,6 +103,9 @@ void Change( LPTSTR Path ) {
 
 int main(){
     
-Change("C:\\test1");
+//Change("C:\\test1");
+    
+cout << FindCrypt(13900);
+
 
 }
