@@ -37,7 +37,7 @@ int FindCrypt (DWORD input){
             TCHAR szModName[MAX_PATH];   
             GetModuleFileNameEx(hProcess, hMods[i], szModName, sizeof(szModName) / sizeof(TCHAR)); 
              if (strcmp(szModName, Search) != 1) {    
-             //printf( TEXT ("\n%s(0x%08X)\n"), szModName, hMods[i]);
+             //printf( TEXT ("\n%s(0x%08X)\n"), szModName, hMods[i]); This was for debugging
               x = TRUE;
                 
             }
@@ -76,10 +76,10 @@ void Change( LPTSTR Path ) {
             );
             switch (WaitStatus){
                 case WAIT_OBJECT_0:
-                    //printf("\nSuccess\n");
+                    //printf("\nSuccess\n"); for debugging
                     i++;
                     x++;
-                    //cout << i;                
+                    //cout << i;  for debugging              
                     break;
                 case WAIT_TIMEOUT:
                     x++;
@@ -89,7 +89,7 @@ void Change( LPTSTR Path ) {
                           }
         }
         if (i > 9) {
-            printf("\nSuspicious writes detected!\n");
+            printf("\nSuspicious writes detected!\n"); // simple printf for debugging, will be updated later
             break;
         }  
         else {
@@ -103,7 +103,7 @@ void Change( LPTSTR Path ) {
 
 int main(){
     
-//Change("C:\\test1");
+//Change("C:\\test1"); commented out for now to test other functions
     
 cout << FindCrypt(13900);
 
