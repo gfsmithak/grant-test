@@ -1,0 +1,10 @@
+   ##Enumerates all shortcut target paths under the given directory##
+    
+    function Get-ShortcutTargets {
+    Param(
+
+    [string[]] $Directory= "C:\Users\*\Desktop"
+    )    
+    $shell = new-object -com wscript.shell
+    GCI $directory -recurse | % {if ($_.fullname -like "*.lnk") {$shell.createshortcut($_.fullname) |select targetpath, fullname}}
+    }
