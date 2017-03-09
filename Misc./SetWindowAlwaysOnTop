@@ -1,0 +1,20 @@
+$setPOS = @'
+[DllImport("user32.dll")]
+public static extern bool SetWindowPos(IntPtr hWnd, 
+IntPtr hWndInsertAfter, 
+int X, 
+int Y, 
+int cx, 
+int cy, 
+uint uFlags);
+'@
+
+$App = Start Notepad.exe -Passthru
+sleep 1
+$Handle = $App.MainWindowHandle
+$SetWindowPos = Add-Type -MemberDefinition $setPOS -name WinApiCall -passthru
+$SetWindowPos::SetWindowPos($handle,-1,0,0,0,0,0x0002)
+
+
+##Set designated window to "always on top" without changing position
+##Flags documented here: https://msdn.microsoft.com/en-us/library/windows/desktop/ms633545(v=vs.85).aspx
