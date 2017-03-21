@@ -1,0 +1,31 @@
+Function ClipboardPrank {
+param(
+[parameter(mandatory=$true)]
+$Path
+)
+
+##API Call to retrieve clipboard sequence number. Appears to increment by 5 every time the clipboard is written to
+$listenerDef = @'
+[DllImport("user32.dll")]
+public static extern int GetClipboardSequenceNumber();
+'@
+$Listener = Add-Type -MemberDefinition $ListenerDef -name listener -passthru
+##Load .Net classes
+[Reflection.Assembly]::LoadWithPartialName('System.Drawing');
+[Reflection.Assembly]::LoadWithPartialName('System.Windows.Forms');
+
+##Starting point
+$var = $listener::GetClipboardSequenceNumber();
+##Loop looking for change
+    while ($true) {
+    
+        if ($var -ne ($listener::GetClipboardSequenceNumber())) {
+            ##.Net to set clipboard content
+            [System.Windows.Forms.Clipboard]::SetImage([System.Drawing.Image]::FromFile($path));
+            ##Update $var to new value
+            $var = $Listener::GetClipboardSequenceNumber();
+            
+        }
+    }
+
+}
