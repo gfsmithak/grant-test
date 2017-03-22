@@ -1,0 +1,3 @@
+## Quick and dirty
+
+get-adorganizationalunit -filter * | foreach {"------" + ($_ | select -expandproperty name) + "-----" |Add-content C:\Users.csv;$users = get-aduser -filter * -searchbase $_.distinguishedname | select -expandproperty name; foreach ($U in $users) {$u | Add-content C:\Users.csv}}
