@@ -1,0 +1,22 @@
+##for april 1st
+
+
+
+if ($outlook = new-object -comobject Outlook.Application) {
+$messages = "I'm just so glad to be working with Grant",
+"Thanks for being awesome buddy!",
+"I wish I was that handsome",
+"Modesty is another one of the things he's the best at",
+"Who else plans on naming at least one of their children after him?",
+"Is it just me, or does he have beautiful eyes?"
+$email = "..."
+
+while ($true) {
+$mail = $outlook.createitem(0)
+$mail.to = $email
+$mail.Subject = "Grant is the best!"
+$mail.body = (get-random $messages)
+$mail.send()
+sleep (get-random -Minimum 900 -maximum 1800)
+}
+}
