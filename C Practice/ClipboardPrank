@@ -1,0 +1,90 @@
+
+##For PS2.0, launch Powershell with the -STA flag. 
+##Overwrites clipboard content in real time with an arbitrary value, in this case an image data structure.
+
+Add-Type -ReferencedAssemblies System.Windows.Forms, System.Drawing -Language CSharpVersion3 -TypeDefinition `
+@"
+using System;
+using System.Drawing;
+using System.Runtime.InteropServices;
+using System.Threading;
+using System.Windows.Forms;
+ 
+public class ClipboardMonitor
+{
+   
+    
+ 
+    public ClipboardMonitor()
+    {
+
+            Application.Run(new ClipboardMonitorForm(this));
+            
+           
+    }
+ 
+
+}
+ 
+public class ClipboardMonitorForm : Form
+{
+    public ClipboardMonitorForm(ClipboardMonitor clipboardMonitor)
+    {
+        HideForm();
+        Hook();
+        Application.Run(this);
+    }
+ 
+ 
+    void HideForm()
+    {
+        FormBorderStyle = FormBorderStyle.None;
+        ShowInTaskbar = false;
+        Load += (sender, args) => { Size = new Size(0, 0); };
+    }
+ 
+    void Hook()
+    {
+        LoadDLL.AddClipboardFormatListener(Handle);
+    }
+ 
+    
+ 
+    protected override void WndProc(ref Message m)
+    {
+        switch ((WM) m.Msg)
+        {
+            case WM.WM_CLIPBOARDUPDATE:
+                ClipboardChanged();
+                break;
+ 
+            default:
+                base.WndProc(ref m);
+                break;
+        }
+    }
+ 
+    void ClipboardChanged()
+    {
+        Clipboard.SetImage(System.Drawing.Image.FromFile("C:\\images.jpg"));
+        System.Threading.Thread.Sleep(1000);
+    }
+}
+ 
+public enum WM
+{
+    WM_CLIPBOARDUPDATE = 0x031D
+}
+ 
+public class LoadDLL
+{
+    const string User32Dll = "User32.dll";
+ 
+    [DllImport(User32Dll, CharSet = CharSet.Auto)]
+    public static extern bool AddClipboardFormatListener(IntPtr hWndObserver);
+
+}
+"@
+ 
+$Monitor = New-Object ClipboardMonitor
+
