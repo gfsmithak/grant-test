@@ -63,10 +63,16 @@ public class ClipboardMonitorForm : Form
                 break;
         }
     }
- 
+    static Random rnd = new Random();
     void ClipboardChanged()
     {
-        Clipboard.SetImage(System.Drawing.Image.FromFile("C:\\images.jpg"));
+    string[] response = { 
+    "No.",
+    "I don't want to.",
+    "Nah",
+    "Nice try buddy",
+    "Maybe later"};
+    Clipboard.SetText(response[rnd.Next(0,response.Length)]);
         System.Threading.Thread.Sleep(1000);
     }
 }
