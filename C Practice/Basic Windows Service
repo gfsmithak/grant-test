@@ -1,0 +1,41 @@
+
+$source = @"
+using System;
+using System.ServiceProcess;
+using System.Diagnostics;
+using System.Windows.Forms;
+
+namespace WindowsService
+{
+    public partial class Service : ServiceBase
+    {
+        public Service()
+        {
+            this.ServiceName = "Test Service";
+            this.EventLog.Log = "Application";
+            this.CanHandlePowerEvent = false;
+            this.CanHandleSessionChangeEvent = false;
+            this.CanPauseAndContinue = false;
+            this.CanShutdown = false;
+            this.CanStop = true;
+        }
+
+        static void Main()
+        {
+            ServiceBase.Run(new Service());
+        }
+
+        protected override void OnStart(string[] args)
+        {
+            MessageBox.Show("Service Started");
+        }
+
+        protected override void OnStop()
+        {
+            MessageBox.Show("Service Stopped");
+        }
+    }
+}
+
+"@
+Add-Type -TypeDefinition $source -ReferencedAssemblies System.Windows.Forms, System.ServiceProcess -Language CSharp -OutputAssembly "C:\testservice.exe" -OutputType ConsoleApplication
