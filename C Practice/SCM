@@ -1,0 +1,58 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+/* 
+ * File:   main.cpp
+ * Author: gsmith
+ *
+ * Created on April 13, 2017, 11:14 AM
+ */
+
+#include <cstdlib>
+#include <Windows.h>
+#include <iostream>
+
+using namespace std;
+
+/* Trying to better understand PSEXEC. Right now, this just starts the named service on the named machine (NULL for local)
+ * 
+ */
+SC_HANDLE GetSCM() {
+ LPCTSTR Machine;
+    Machine = "LMJANCVMRDS";
+    OpenSCManager (
+            Machine,
+            NULL,
+            SC_MANAGER_CONNECT
+            );   
+}
+
+SC_HANDLE GetService(){
+    LPCTSTR Name;
+    Name = "wmiApSrv";
+    SC_HANDLE scm = GetSCM();
+    OpenService(
+            scm,
+            Name,
+            SERVICE_START
+            );
+    
+    
+}
+
+int Start() {
+    SC_HANDLE hnd = GetService();
+    StartService(
+            hnd,
+            0,
+            NULL);
+}
+
+
+int main() {
+    cout << Start();
+}
+
