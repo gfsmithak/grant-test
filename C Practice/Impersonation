@@ -1,0 +1,42 @@
+//Playing with impersonation/tokens
+
+#include <cstdlib>
+#include <Windows.h>
+#include <iostream>
+
+using namespace std;
+BOOL LogOn(){
+    HANDLE hToken;
+    //ZeroMemory(&hToken, sizeof(hToken));
+    LogonUser("Administrator", NULL, NULL, LOGON32_LOGON_INTERACTIVE, LOGON32_PROVIDER_DEFAULT, &hToken);
+}
+int Open(DWORD input){
+
+    HANDLE ph;
+    
+    ph = OpenProcess (
+                PROCESS_QUERY_INFORMATION |
+                PROCESS_VM_READ,
+                FALSE, input);
+    
+    HANDLE tHandle;
+    OpenProcessToken(
+    ph,
+    TOKEN_IMPERSONATE,
+    &tHandle
+    );
+}
+
+
+
+
+int main(){
+    while (TRUE){
+    //cout << "Enter PID\n";
+    DWORD io;
+    cin >> io;
+    cout << Open(io);
+    cout << "Wait";
+    cin.get();
+    }
+}
