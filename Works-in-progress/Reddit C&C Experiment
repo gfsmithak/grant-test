@@ -1,0 +1,12 @@
+##Uses custom subreddit as a command & control "server". Feeds text posts to the text-to-speech API. 
+
+$SAPI = New-Object -ComObject SAPI.SpVoice
+$OldText = $Null
+While ($true) {
+  $Response = Invoke-RestMethod -URI https://www.reddit.com/r/VABlAHMAdABDACYAQwA.json -Method Get
+  $Text = $Response.data.children.data[0].selftext
+  If ($Text -ne $OldText){
+    $SAPI.speak($Text)
+    $OldText = $Text
+  }
+}
