@@ -1,42 +1,60 @@
 //Playing with impersonation/tokens
+//Launches the given process as the user of the specified app, must be done as System though.
+
 
 #include <cstdlib>
 #include <Windows.h>
 #include <iostream>
 
 using namespace std;
-BOOL LogOn(){
-    HANDLE hToken;
-    //ZeroMemory(&hToken, sizeof(hToken));
-    LogonUser("Administrator", NULL, NULL, LOGON32_LOGON_INTERACTIVE, LOGON32_PROVIDER_DEFAULT, &hToken);
-}
-int Open(DWORD input){
+
+HANDLE Open(DWORD input){
 
     HANDLE ph;
     
     ph = OpenProcess (
-                PROCESS_QUERY_INFORMATION |
-                PROCESS_VM_READ,
+                PROCESS_ALL_ACCESS,
                 FALSE, input);
     
     HANDLE tHandle;
     OpenProcessToken(
     ph,
-    TOKEN_IMPERSONATE,
+    TOKEN_IMPERSONATE | TOKEN_QUERY | TOKEN_DUPLICATE | TOKEN_ASSIGN_PRIMARY,
     &tHandle
     );
+    return tHandle;
 }
 
-
-
-
+void Launch(HANDLE Token){
+    STARTUPINFO info;
+    PROCESS_INFORMATION processInfo;
+    ZeroMemory(&info, sizeof(info));
+    info.cb= sizeof( info );
+    ZeroMemory(&processInfo, sizeof(processInfo));
+    info.dwFlags= STARTF_USESHOWWINDOW;
+    info.wShowWindow= SW_SHOWNORMAL;
+    LPSTR cmd;
+    cmd = "C://Windows//SysNative//WindowsPowerShell//v1.0//PowerShell.exe -executionpolicy unrestricted -noexit -noprofile";
+    CreateProcessAsUser(
+        Token,
+        NULL,
+        cmd,
+        NULL,
+        NULL,
+        FALSE,
+        0x00000010,
+        NULL,
+        NULL,
+        &info,
+        &processInfo
+         );
+    cout << processInfo.hProcess;
+WaitForSingleObject( processInfo.hProcess, INFINITE );
+CloseHandle( processInfo.hProcess );
+CloseHandle( processInfo.hThread );
+}
 int main(){
-    while (TRUE){
-    //cout << "Enter PID\n";
-    DWORD io;
-    cin >> io;
-    cout << Open(io);
-    cout << "Wait";
-    cin.get();
-    }
+    
+    Launch(Open(9532));
 }
+    
