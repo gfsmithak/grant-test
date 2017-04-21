@@ -1,31 +1,41 @@
 //Playing with impersonation/tokens
-//Launches the given process as the user of the specified app, must be done as System though.
+//Now with command line arguments. Launch it with <program> <pid> to specify a program to launch and/or PID of a process 
+//owned by the user you wish to impersonate. Default is Powershell.exe/calling user
 
 
 #include <cstdlib>
 #include <Windows.h>
 #include <iostream>
+#include <sstream>
 
 using namespace std;
 
+//Function to retrieve token
 HANDLE Open(DWORD input){
 
     HANDLE ph;
     
+    //Must run as System to aquire tokens from processes outside the calling process' context
     ph = OpenProcess (
                 PROCESS_ALL_ACCESS,
                 FALSE, input);
     
     HANDLE tHandle;
+    
     OpenProcessToken(
-    ph,
-    TOKEN_IMPERSONATE | TOKEN_QUERY | TOKEN_DUPLICATE | TOKEN_ASSIGN_PRIMARY,
-    &tHandle
-    );
+        ph,
+        //These permissions are all required for impersonation
+        TOKEN_IMPERSONATE | TOKEN_QUERY | TOKEN_DUPLICATE | TOKEN_ASSIGN_PRIMARY,
+        &tHandle
+        );
     return tHandle;
 }
 
-void Launch(HANDLE Token){
+
+void Launch(LPSTR cmd, HANDLE Token){
+
+    //initialize process and startup structs
+    
     STARTUPINFO info;
     PROCESS_INFORMATION processInfo;
     ZeroMemory(&info, sizeof(info));
@@ -33,8 +43,9 @@ void Launch(HANDLE Token){
     ZeroMemory(&processInfo, sizeof(processInfo));
     info.dwFlags= STARTF_USESHOWWINDOW;
     info.wShowWindow= SW_SHOWNORMAL;
-    LPSTR cmd;
-    cmd = "C://Windows//SysNative//WindowsPowerShell//v1.0//PowerShell.exe -executionpolicy unrestricted -noexit -noprofile";
+    
+    //Process creation call 
+    
     CreateProcessAsUser(
         Token,
         NULL,
@@ -42,19 +53,38 @@ void Launch(HANDLE Token){
         NULL,
         NULL,
         FALSE,
+        //This flag specifies the creation of a new console, without this the new process won't run on the target user's desktop properly
         0x00000010,
         NULL,
         NULL,
         &info,
         &processInfo
          );
-    cout << processInfo.hProcess;
-WaitForSingleObject( processInfo.hProcess, INFINITE );
-CloseHandle( processInfo.hProcess );
-CloseHandle( processInfo.hThread );
 }
-int main(){
+
+int main(int argc, char *argv[]){
+    DWORD pid;
+    LPSTR command;    
     
-    Launch(Open(9532));
+    //If no PID is provided, set to "0" which will always run in the context of the calling process
+    if (!(argv[2])){
+        pid = 0;
+    }
+    else {
+ 
+    stringstream convert(argv[2]);    
+    convert >> pid;
+    }
+    
+    //If no command is provided, default to Powershell
+    if (!(argv[1])){
+        command = "powershell.exe"; 
+    }
+    else {
+        stringstream convert(argv[1]);
+        convert >> command;
+    }
+    
+    Launch(command, Open(pid));
 }
     
