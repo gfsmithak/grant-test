@@ -1,7 +1,12 @@
 
 $Reg=gci "hklm:\software\microsoft\windows nt\currentversion\profilelist" | % {get-itemproperty $_.pspath}
-$Username="jonathan.shrack"
+$Username="jonathan.schrack"
 if ($Reg.profileimagepath -match $Username) {
 
 "$Username found @ $env:computername" | out-file "\\lm-dc01\temp\temp.txt" -append
+}
+
+else 
+{
+"Nothing on $env:computername" | out-file "\\lm-dc01\temp\temp.txt" -append
 }
