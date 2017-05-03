@@ -1,0 +1,162 @@
+<# PS-based replacement for PSEXEC, allowing you to open apps as any logged in user. Requires local admin rights. Right now it's local
+only, the next stage will be network access. Usage is like this:
+
+1. Look for a process running under the desired user. Note the PID.
+2. Start the service, specifying the app to launch and the PID to copy context from:
+  sc.exe start testing powershell 6024
+3. Right now, to control the shell I've just been using enter-pshostprocess. Use the PID of the Powershell instance
+   we launched earlier:
+  Enter-PSHostProcess -id 10384
+ 4. Stop the service, allowing you to run it again later if desired or just delete it: 
+  sc.exe stop testing
+Now you have an interactive shell as the target user
+
+#>
+
+# C# service
+$source = @"
+using System;
+using System.ServiceProcess;
+using System.Diagnostics;
+using System.Windows.Forms;
+using System.Runtime.InteropServices;
+//Makes WINAPI happy
+using DWORD = System.UInt32;
+//Service namespace
+namespace WindowsService
+{
+     //Def WINAPI calls
+     class loadDLL
+    {
+        [DllImport("Kernel32.dll", CharSet = CharSet.Auto)]
+        public static extern IntPtr OpenProcess(uint dwDesiredAccess,
+                                              bool bInheritHandle,
+                                              uint dwProcessID);
+
+        [DllImport("Kernel32.dll", CharSet = CharSet.Auto)]
+        public static extern bool OpenProcessToken(IntPtr ProcessHandle,
+                                                   DWORD DesiredAccess,
+                                                  out IntPtr TokenHandle);
+                                                  
+        [DllImport("Advapi32.dll", CharSet = CharSet.Auto)]
+        public static extern bool CreateProcessAsUser(IntPtr hToken,
+                                                      string lpApplicationName,
+                                                      string lpCommandLine,
+                                                      IntPtr lpProcessAttributes,
+                                                      IntPtr lpThreadAttributes,
+                                                      bool bInheritHandles,
+                                                      Int32 dwCreationFlags,
+                                                      IntPtr lpEnvironment,
+                                                      string lpCurrentDirectory,
+                                                      ref Service.STARTUPINFO lpStartupInfo,
+                                                      out Service.PROCESS_INFORMATION lpProcessInformation);
+                                                      
+
+
+    }
+
+
+    public partial class Service : ServiceBase
+    {
+        //Def process info data structure for WINAPI    
+        [StructLayout(LayoutKind.Sequential)]
+        internal struct PROCESS_INFORMATION
+        {
+            public IntPtr hProcess;
+            public IntPtr hThread;
+            public int dwProcessId;
+            public int dwThreadId;
+        }
+        //Def 
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+        public struct STARTUPINFO
+        {
+            public Int32 cb;
+            public string lpReserved;
+            public string lpDesktop;
+            public string lpTitle;
+            public Int32 dwX;
+            public Int32 dwY;
+            public Int32 dwXSize;
+            public Int32 dwYSize;
+            public Int32 dwXCountChars;
+            public Int32 dwYCountChars;
+            public Int32 dwFillAttribute;
+            public Int32 dwFlags;
+            public Int16 wShowWindow;
+            public Int16 cbReserved2;
+            public IntPtr lpReserved2;
+            public IntPtr hStdInput;
+            public IntPtr hStdOutput;
+            public IntPtr hStdError;
+        }
+        public const int TOKEN_ASSIGN_PRIMARY = (0x0001);
+        public const int TOKEN_DUPLICATE = (0x0002);
+        public const int TOKEN_IMPERSONATE = (0x0004);
+        public const int TOKEN_QUERY = (0x0008);
+        
+
+        public Service()
+        {
+            this.ServiceName = "Test Service";
+            this.EventLog.Log = "Application";
+            this.CanHandlePowerEvent = false;
+            this.CanHandleSessionChangeEvent = false;
+            this.CanPauseAndContinue = false;
+            this.CanShutdown = false;
+            this.CanStop = true;
+        }
+        
+        static void Main()
+        {
+            ServiceBase.Run(new Service());
+        }
+        
+        protected override void OnStart(string[] args)
+        {
+        
+            IntPtr ph;
+            uint access;
+            access = 0x0400;
+            IntPtr tHandle;
+            uint proc;
+            proc = Convert.ToUInt32(args[1]);
+            ph = loadDLL.OpenProcess(access, false, proc);
+            loadDLL.OpenProcessToken(ph, TOKEN_IMPERSONATE | TOKEN_QUERY | TOKEN_DUPLICATE | TOKEN_ASSIGN_PRIMARY, out tHandle);
+
+            STARTUPINFO info = new STARTUPINFO();
+            PROCESS_INFORMATION processInfo = new PROCESS_INFORMATION();
+            info.cb = Marshal.SizeOf(info);           
+
+
+            loadDLL.CreateProcessAsUser(tHandle,
+                null,
+                args[0],
+                IntPtr.Zero,
+                IntPtr.Zero,
+                false,
+                0x00000010,
+                IntPtr.Zero,
+                null,
+                ref info,
+                out processInfo);
+
+        }
+
+        protected override void OnStop()
+        {
+            
+        }
+
+      
+         
+                
+
+    }
+   
+}
+
+"@
+Add-Type -TypeDefinition $source -ReferencedAssemblies System.Windows.Forms, System.ServiceProcess -Language CSharp -OutputAssembly "C:\testservice.exe" -OutputType ConsoleApplication
+
+new-service -name "testing" -binarypathname C:\testservice.exe -displayname "test" -startuptype manual 
