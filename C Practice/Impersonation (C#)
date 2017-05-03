@@ -1,10 +1,9 @@
-##Doesn't work yet, TOUInt32 initial value incorrect.
-
 using System;
 using System.Runtime.InteropServices;
 
 
 using DWORD = System.UInt32;
+
 namespace ConsoleApplication1
 {
 
@@ -39,8 +38,8 @@ namespace ConsoleApplication1
 
     class Program
     {
+    
 
-      
         [StructLayout(LayoutKind.Sequential)]
         internal struct PROCESS_INFORMATION
         {
@@ -83,7 +82,7 @@ namespace ConsoleApplication1
             access = 0x0400;
             IntPtr tHandle;
             uint proc;
-            proc = Convert.ToUInt32(args[1], 16);
+            proc = Convert.ToUInt32(args[1]);
             ph = loadDLL.OpenProcess(access, false, proc);
             loadDLL.OpenProcessToken(ph, TOKEN_IMPERSONATE | TOKEN_QUERY | TOKEN_DUPLICATE | TOKEN_ASSIGN_PRIMARY, out tHandle);
 
