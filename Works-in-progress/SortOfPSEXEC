@@ -117,6 +117,7 @@ namespace WindowsService
         
             IntPtr ph;
             uint access;
+            // code for ALL_ACCESS. Can't find a good resource for this, lifted this # from an unrelated VB script I found online
             access = 0x0400;
             IntPtr tHandle;
             uint proc;
