@@ -2,20 +2,42 @@
 //Now with command line arguments. Launch it with <program> <pid> to specify a program to launch and/or PID of a process 
 //owned by the user you wish to impersonate. Default is Powershell.exe/calling user
 
+//Now launches in the specified session, but the window is input-only... need to figure out how to 
+//grant permissions to the default desktop across sessions.
+
+
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+/* 
+ * File:   main.cpp
+ * Author: gsmith
+ *
+ * Created on April 14, 2017, 2:00 PM
+ */
+
 
 #include <cstdlib>
 #include <Windows.h>
 #include <iostream>
 #include <sstream>
-
+#include <AccCtrl.h>
+#include <Aclapi.h>
+#include <winnt.h>
+#include <userenv.h>
 using namespace std;
 
-//Function to retrieve token
+
+
+
+
 HANDLE Open(DWORD input){
 
     HANDLE ph;
     
-    //Must run as System to aquire tokens from processes outside the calling process' context
     ph = OpenProcess (
                 PROCESS_ALL_ACCESS,
                 FALSE, input);
@@ -23,19 +45,61 @@ HANDLE Open(DWORD input){
     HANDLE tHandle;
     
     OpenProcessToken(
-        ph,
-        //These permissions are all required for impersonation
-        TOKEN_IMPERSONATE | TOKEN_QUERY | TOKEN_DUPLICATE | TOKEN_ASSIGN_PRIMARY,
-        &tHandle
-        );
-    return tHandle;
-}
-
-
-void Launch(LPSTR cmd, HANDLE Token){
-
-    //initialize process and startup structs
+    ph,
+    TOKEN_IMPERSONATE | TOKEN_QUERY | TOKEN_DUPLICATE | TOKEN_ASSIGN_PRIMARY,
+    &tHandle
+    );
     
+    
+    HANDLE dHandle;
+    /*LPSECURITY_ATTRIBUTES sa;
+    sa.bInheritHandle = TRUE;
+    sa.lpSecurityDescriptor = NULL;
+    sa.nLength = sizeof(SECURITY_ATTRIBUTES);
+     * */
+    DuplicateTokenEx( 
+                        tHandle,
+                        TOKEN_ALL_ACCESS,
+                        NULL,
+                        SecurityImpersonation,
+                        TokenPrimary,
+                        &dHandle);
+    
+    
+  
+    DWORD sid;
+    sid = 1;
+    LUID luid;
+    TOKEN_PRIVILEGES priv;
+   
+ 
+           
+    LookupPrivilegeValue(NULL,"SeTcbPrivilege",&luid);  
+    
+    priv.PrivilegeCount = 1;
+    priv.Privileges[0].Luid = luid;
+    priv.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
+    SetTokenInformation(dHandle,TokenSessionId,&sid,sizeof(sid));
+    AdjustTokenPrivileges(dHandle,FALSE,&priv,sizeof(TOKEN_PRIVILEGES),(PTOKEN_PRIVILEGES)NULL,(PDWORD)NULL);
+   
+    
+    
+
+
+    
+    
+    
+     
+    
+    
+    
+    return dHandle;
+}
+ 
+void Launch(LPSTR cmd, HANDLE Token){
+    
+
+
     STARTUPINFO info;
     PROCESS_INFORMATION processInfo;
     ZeroMemory(&info, sizeof(info));
@@ -43,8 +107,10 @@ void Launch(LPSTR cmd, HANDLE Token){
     ZeroMemory(&processInfo, sizeof(processInfo));
     info.dwFlags= STARTF_USESHOWWINDOW;
     info.wShowWindow= SW_SHOWNORMAL;
+    info.lpDesktop = "Default";
     
-    //Process creation call 
+    //SECURITY_ATTRIBUTES Security1;
+    //SECURITY_ATTRIBUTES Security2;
     
     CreateProcessAsUser(
         Token,
@@ -53,7 +119,6 @@ void Launch(LPSTR cmd, HANDLE Token){
         NULL,
         NULL,
         FALSE,
-        //This flag specifies the creation of a new console, without this the new process won't run on the target user's desktop properly
         0x00000010,
         NULL,
         NULL,
@@ -63,10 +128,10 @@ void Launch(LPSTR cmd, HANDLE Token){
 }
 
 int main(int argc, char *argv[]){
+ 
     DWORD pid;
     LPSTR command;    
     
-    //If no PID is provided, set to "0" which will always run in the context of the calling process
     if (!(argv[2])){
         pid = 0;
     }
@@ -76,7 +141,6 @@ int main(int argc, char *argv[]){
     convert >> pid;
     }
     
-    //If no command is provided, default to Powershell
     if (!(argv[1])){
         command = "powershell.exe"; 
     }
@@ -87,4 +151,5 @@ int main(int argc, char *argv[]){
     
     Launch(command, Open(pid));
 }
+    
     
