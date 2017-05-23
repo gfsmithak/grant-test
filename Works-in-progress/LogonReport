@@ -1,3 +1,8 @@
+<#Made this for ACA. Willow needs to check logon times for various users/computers periodically over the next few months. 
+This way she can do it herself instead of having to call us every time. 
+There are definitely better ways to do this, but we're not officially supporting it- just put this together as a favor. 
+#>
+
 Function Get-Logons {
 
 [cmdletbinding()]
