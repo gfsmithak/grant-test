@@ -5,11 +5,13 @@ Param(
 [parameter(mandatory=$true)]
 $computername,
 [parameter(mandatory=$true)]
-$username
+$username,
+[parameter(mandatory=$true)]
+$PreviousDays
 
 )
 $credential = Get-Credential
-$log = get-eventlog security -computername $computername -after (get-date).adddays(-5)
+$log = get-eventlog security -computername $computername -after (get-date).adddays(-($PreviousDays))
 $Logons = $log | ? {$_.eventid -eq 4624 -and $_.replacementstrings[5] -eq "$username"} | select -expandproperty timegenerated
 $Logoffs = $Log | ? {$_.eventid -eq "4647"} | select -ExpandProperty timegenerated
 
