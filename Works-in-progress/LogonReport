@@ -1,0 +1,23 @@
+Function Get-Logons {
+
+[cmdletbinding()]
+Param(
+[parameter(mandatory=$true)]
+$computername,
+[parameter(mandatory=$true)]
+$username
+
+)
+$credential = Get-Credential
+$log = get-eventlog security -computername $computername -after (get-date).adddays(-5)
+$Logons = $log | ? {$_.eventid -eq 4624 -and $_.replacementstrings[5] -eq "$username"} | select -expandproperty timegenerated
+$Logoffs = $Log | ? {$_.eventid -eq "4647"} | select -ExpandProperty timegenerated
+
+$body = "Logons:`n`n"
+$logons | % {$body += "$_`n"}
+$body += "`nLogoffs:`n`n"
+$Logoffs | % {$body += "$_`n"}
+
+send-mailmessage -from $credential.username -to $credential.username -subject "Logon activity" -body "$body" -credential ($credential) -usessl -smtpserver smtp.office365.com -port "587"
+
+}
