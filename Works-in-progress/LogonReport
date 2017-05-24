@@ -55,6 +55,7 @@ $body += "`nLogoffs:`n`n"
 $Logoffs | % {$body += "$_`n"}
 }
 try{
+write-host "Please provide your email credentials"
 $credential = Get-Credential
 send-mailmessage -from $credential.username -to $credential.username -subject "Logon activity for $username on $computername" -body "$body" -credential ($credential) -usessl -smtpserver smtp.office365.com -port "587"
 Write-Host "Report sent to $($credential.username)"
