@@ -15,16 +15,44 @@ $username,
 $PreviousDays
 
 )
+while (!(test-connection $computername)){
+$computername = read-host "Please enter a valid computer name, or type 'exit' to quit"
+if ($computername -eq "exit"){
+exit;
+}
+}
+
 $credential = Get-Credential
-$log = get-eventlog security -computername $computername -after (get-date).adddays(-($PreviousDays))
+$date = (get-date).adddays(-($PreviousDays))
+$log = get-eventlog security -computername $computername -after $date
 $Logons = $log | ? {$_.eventid -eq 4624 -and $_.replacementstrings[5] -eq "$username"} | select -expandproperty timegenerated
 $Logoffs = $Log | ? {$_.eventid -eq "4647"} | select -ExpandProperty timegenerated
 
-$body = "Logons:`n`n"
+if (!($logons)){
+$body += "`nNo logons found for $username since $date`n`n"
+}
+else {
+
+$body += "`nLogons:`n`n"
 $logons | % {$body += "$_`n"}
+}
+if (!($logoffs)){
+$body += "`nNo logoffs found for $username since $date`n`n"
+}
+else {
 $body += "`nLogoffs:`n`n"
 $Logoffs | % {$body += "$_`n"}
-
-send-mailmessage -from $credential.username -to $credential.username -subject "Logon activity" -body "$body" -credential ($credential) -usessl -smtpserver smtp.office365.com -port "587"
-
+}
+try{
+send-mailmessage -from $credential.username -to $credential.username -subject "Logon activity for $username on $computername" -body "$body" -credential ($credential) -usessl -smtpserver smtp.office365.com -port "587"
+}
+catch
+{
+write-host "Email failed. Writing output to C:\users\public\documents\output.txt instead. Writing error log to C:\users\public\documents\log.txt"
+$error > "C:\users\public\documents\log.txt"
+"Logons:`n`n" | out-file "C:\users\public\documents\output.txt" -append
+$logons | % {"$_`n" | out-file "C:\users\public\documents\output.txt" -append}
+"Logoffs:`n`n" | out-file "C:\users\public\documents\output.txt" -append
+$logoffs | % {"$_`n" | out-file "C:\users\public\documents\output.txt" -append}
+}
 }
