@@ -18,41 +18,56 @@ $PreviousDays
 while (!(test-connection $computername)){
 $computername = read-host "Please enter a valid computer name, or type 'exit' to quit"
 if ($computername -eq "exit"){
-exit;
+exit
 }
 }
 
-$credential = Get-Credential
+
 $date = (get-date).adddays(-($PreviousDays))
+try {
 $log = get-eventlog security -computername $computername -after $date
-$Logons = $log | ? {$_.eventid -eq 4624 -and $_.replacementstrings[5] -eq "$username"} | select -expandproperty timegenerated
-$Logoffs = $Log | ? {$_.eventid -eq "4647"} | select -ExpandProperty timegenerated
-
-if (!($logons)){
-$body += "`nNo logons found for $username since $date`n`n"
+$LogEnd = $log[($log.count)-1].timegenerated
 }
-else {
-
+catch {
+write-host "Unable to retrieve event logs`nError Message:`n`n$($error[0])`n`nError log saved to C:\users\public\documents\Log.txt, exiting script"
+$Error > "C:\users\public\documents\log.txt"
+pause
+exit
+}
+if ($LogEnd -gt $date){
+write-host "Logs only available since $LogEnd"
+}
+$Logons = $log | ? {$_.eventid -eq "4624" -and $_.replacementstrings[5] -eq "$username"} | select -ExpandProperty timegenerated
+$Logoffs = $Log | ? {$_.eventid -eq "4647" -and $_.replacementstrings[1] -eq "$username"} | select -ExpandProperty timegenerated
+$body += "Report - $username on $computername`n"
+if (!($logons)){
+$body += "`nNo logons found for $username on $computername since $LogEnd`n`n"
+}
+else{
 $body += "`nLogons:`n`n"
 $logons | % {$body += "$_`n"}
 }
 if (!($logoffs)){
-$body += "`nNo logoffs found for $username since $date`n`n"
+$body += "`nNo logoffs found for $username on $computername since $LogEnd`n`n"
 }
 else {
 $body += "`nLogoffs:`n`n"
 $Logoffs | % {$body += "$_`n"}
 }
 try{
+$credential = Get-Credential
 send-mailmessage -from $credential.username -to $credential.username -subject "Logon activity for $username on $computername" -body "$body" -credential ($credential) -usessl -smtpserver smtp.office365.com -port "587"
+Write-Host "Report sent to $($credential.username)"
 }
 catch
 {
-write-host "Email failed. Writing output to C:\users\public\documents\output.txt instead. Writing error log to C:\users\public\documents\log.txt"
+write-host "Email failed. Writing output to C:\users\public\documents\$username.txt instead. Writing error log to C:\users\public\documents\log.txt"
 $error > "C:\users\public\documents\log.txt"
-"Logons:`n`n" | out-file "C:\users\public\documents\output.txt" -append
-$logons | % {"$_`n" | out-file "C:\users\public\documents\output.txt" -append}
-"Logoffs:`n`n" | out-file "C:\users\public\documents\output.txt" -append
-$logoffs | % {"$_`n" | out-file "C:\users\public\documents\output.txt" -append}
+"Logons:`n`n" | out-file "C:\users\public\documents\$username.txt" -append
+$logons | % {"$_`n" | out-file "C:\users\public\documents\$username.txt" -append}
+"Logoffs:`n`n" | out-file "C:\users\public\documents\$username.txt" -append
+$logoffs | % {"$_`n" | out-file "C:\users\public\documents\$username.txt" -append}
 }
+write-host "Done! Press any key to exit"
+exit
 }
