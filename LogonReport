@@ -69,7 +69,7 @@ $logons | % {"$_`n" | out-file "C:\users\public\documents\$username.txt" -append
 "Logoffs:`n`n" | out-file "C:\users\public\documents\$username.txt" -append
 $logoffs | % {"$_`n" | out-file "C:\users\public\documents\$username.txt" -append}
 }
-write-host "Done! Press any key to quit"
+read-host "Done! Press any key to quit"
 exit
 }
 
