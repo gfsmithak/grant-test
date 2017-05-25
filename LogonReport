@@ -72,3 +72,5 @@ $logoffs | % {"$_`n" | out-file "C:\users\public\documents\$username.txt" -appen
 write-host "Done! Press any key to quit"
 exit
 }
+
+Get-Logons
