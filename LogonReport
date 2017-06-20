@@ -62,12 +62,12 @@ Write-Host "Report sent to $($credential.username)"
 }
 catch
 {
-write-host "Email failed. Writing output to C:\users\public\documents\$username.txt instead. Writing error log to C:\users\public\documents\log.txt"
+write-host "Email failed. Writing output to \\server04\Private_server01\wzamos\$username.txt instead. Writing error log to C:\users\public\documents\log.txt"
 $error > "C:\users\public\documents\log.txt"
-"Logons:`n`n" | out-file "C:\users\public\documents\$username.txt" -append
-$logons | % {"$_`n" | out-file "C:\users\public\documents\$username.txt" -append}
-"Logoffs:`n`n" | out-file "C:\users\public\documents\$username.txt" -append
-$logoffs | % {"$_`n" | out-file "C:\users\public\documents\$username.txt" -append}
+"Logons:`n`n" | out-file "\\server04\Private_server01\wzamos\$username.txt" -append
+$logons | % {"$_`n" | out-file "\\server04\Private_server01\wzamos\$username.txt" -append}
+"Logoffs:`n`n" | out-file "\\server04\Private_server01\wzamos\$username.txt" -append
+$logoffs | % {"$_`n" | out-file "\\server04\Private_server01\wzamos\$username.txt" -append}
 }
 read-host "Done! Press any key to quit"
 exit
