@@ -1,0 +1,36 @@
+
+ if (Get-WmiObject win32_networkadapterconfiguration | Where {$_.ipaddress -match ":"}) {
+
+    Try {
+
+    new-eventlog -logname Application -source "LabtechScripting" -erroraction "silentlycontinue"
+
+    }
+
+    Catch {
+
+    if ($error[0] -match "already registered") {
+
+        Continue
+
+        }
+
+    Else {    
+
+        $error > "C:\users\public\documents\IPv6CheckErrorLog.txt"
+        exit
+        
+       } 
+    }
+
+    Try {
+
+    write-eventlog -logname Application -source "LabtechScripting" -entrytype Information -eventID 1 -message "IPv6 Enabled!"
+    }
+
+    Catch {
+
+    $error > "C:\users\public\documents\IPv6CheckErrorLog.txt"
+
+    }
+}
