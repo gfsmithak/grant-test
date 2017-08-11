@@ -1,40 +1,73 @@
+Function Get-DellWarranty {
+        
+    param(
+    [parameter(valuefrompipeline=$true,Mandatory=$false)]
+    $Tags = (GC (read-host "Please enter the path to a text file containing your serial numbers.")),
+    [parameter(valuefrompipeline=$true,Mandatory=$True)]
+    $DellAPIKey
 
-    Function Get-DellWarranty {
-    
-
-    <#
-        .Synopsis
-            Searches Dell's website for Warranty information
-        .Description
-            Enter a serial number (or import multiple via a CSV file) to retrieve warranty type, start/end date, and ship date. Outputs to a CSV file
-             a specified location.
-        .Example
-            Get-DellWarranty -assettag $(import-csv C:\example.csv) -APIKey $APIKey -savepath C:\results.csv
-        #>
-
-
-    [cmdletbinding()]
-    Param (
-    [parameter(valuefrompipeline=$true,Mandatory=$true)]
-    [string[]]$AssetTag,
-    [parameter(valuefrompipeline=$true,Mandatory=$true)]
-    [string]$APIKey,
-    [parameter(valuefrompipeline=$true,Mandatory=$true)]
-    [string]$SavePath
     )
 
-    Foreach ($A in $AssetTag){    
-    [string]$BaseUri     = "https://api.dell.com/support/assetinfo/v4/getassetwarranty/$($A)?apikey=$($APIKey)"
     [string]$ContentType = "application/json"
+
+    Write-host "Authenitcating, please wait...`n"
+
+    try {
+        
+        Invoke-RestMethod -URI "https://api.dell.com/support/assetinfo/v4/getassetwarranty/0?apikey=$($DellAPIKey)" -ContentType "application/json" -Method Get
+
+        }
+
+    catch {
+
+        Write-host "Unable to authenticate!, see error below.`n"
+        $Error[0]
+
+        }
+
+  $tags | % {
+
+    $BaseUri     = "https://api.dell.com/support/assetinfo/v4/getassetwarranty/$($_)?apikey=$($DellAPIKey)"
+   
  
     $JSONResponse = Invoke-RestMethod -URI $BaseURI  -ContentType $ContentType -Method Get
-
     
-    $data=$jsonresponse.assetwarrantyresponse.assetentitlementdata 
-    $data | foreach {$object = $_ | select-object @{Name="Warranty Description";Expression={$_.serviceleveldescription}},@{Name="StartDate";Expression={$_.startdate}},@{Name="EndDate";Expression={$_.enddate}},@{Name="Warranty Type";Expression={$_.entitlementtype}};
-    $object | add-member -type noteproperty -name "Asset Tag" -value $($A);
-    $object | add-member -type noteproperty -name "Ship Date" -value $($jsonresponse.assetwarrantyresponse.assetheaderdata.shipdate)
-    $object | export-csv $savepath -append -notypeinformation
+    $data = $jsonresponse.assetwarrantyresponse.assetentitlementdata 
+
+    $AObj = new-object psobject -property @{Name="$_"}
+   
+    Foreach ($D in $data) {
+
+        If ($D.EntitlementType -eq "Initial" -and $D.serviceleveldescription -match "Onsite") {
+            
+            $AObj | add-member noteproperty -name "Ship Date" -value $D.StartDate.split("T")[0]
+
+            $AObJ | Add-member noteproperty -name "Warranty End" -value $D.EndDate.split("T")[0] -ea SilentlyContinue
+
+        }
+
+       elseif  ($D.entitlementtype -eq "Extended"){
+            
+            $AObj | add-member noteproperty -name "Warranty End" -value $D.enddate.split("T")[0] -force
+
+            }
+        
     }
+
+    if (!($AObj.'Ship Date')) 
+
+        {$Aobj | add-member noteproperty -name "Ship Date" -value " "}
+
+    if (!($AObj.'Warranty End')) 
+
+        {$Aobj | add-member noteproperty -name "Warranty End" -value " "}
+
+    Write-host "Data collected for $_"
+
+    $AObj | export-csv "$([Environment]::GetFolderPath("Desktop"))\final.csv" -NoTypeInformation -Append -force
+
     }
-    }
+
+    write-host "Finished! Data output to $([Environment]::GetFolderPath("Desktop"))\final.csv"
+}
+
