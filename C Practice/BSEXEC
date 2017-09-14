@@ -190,7 +190,7 @@ namespace WindowsService
         protected override void OnStop()
         {
             
-            /*  THis causes the POSH job to crash for some reason, "temporary" solution is to just stop the service as part of OnStart().
+            /*  No matter what I try, putting anything here causes the POSH job to crash. Temporary "solution" is to just initiate cleanup in OnStart().
             Process.Start("cmd","/c sc.exe stop $name & sc.exe delete $Name & del C:\\Windows\\$name.exe");
             System.Threading.Thread.Sleep(5000);
             base.OnStop();
