@@ -1,15 +1,37 @@
 Function BSEXEC {
 
+<# 
+
+    .Synopsis
+        POSH-Based remote code execution inspired by PSEXEC.
+    .Description
+        Uses the same method as PSEXEC- drop a proxy service on the target machine that runs your code, then deletes itself. Takes 4 inputs:
+
+        1. $Proc, a PID on the target machine running under the user you want to impersonate. 0 will always run as system.
+        2. $Path, the name of the target machine
+        3. $Command, the command to execute. Keep in mind this is executing via the wscript host. Environment variables are... shaky. Cmd.exe
+        works, but notepad requires the full file path.
+        4. $Name, name of the service to be created. It'll only exist for a couple of seconds, but it will touch the event log and the registry.
+        Best to make it something unassuming.
+
+        The temp service is saved to C:\windows.
+
+    .Example
+            
+        bsexec 0 $env:Computername "cmd.exe /c whoami > C:\\test.txt" testpayload
+
+
+#>
 
 Param (
 [Parameter(Mandatory=$True)]
-$Proc,
+[int]$Proc,
 [Parameter(Mandatory=$True)]
-$path,
+[string]$path,
 [Parameter(Mandatory=$True)]
-$Command,
+[string]$Command,
 [Parameter(Mandatory=$True)]
-$Name
+[string]$Name
 
 )
 
@@ -153,7 +175,7 @@ public enum TokenType
             proc = $proc;
             ph = loadDLL.OpenProcess(access, false, proc);
             loadDLL.OpenProcessToken(ph, TOKEN_IMPERSONATE | TOKEN_QUERY | TOKEN_DUPLICATE | TOKEN_ASSIGN_PRIMARY, out tHandle);
-            System.String cmd = "$Command & sleep 1 & sc.exe stop $Name & sc.exe delete $Name";
+            System.String cmd = "$Command & sleep 1 & sc.exe stop $Name & sc.exe delete $Name & del C:\\Windows\\$name.exe";
             STARTUPINFO info = new STARTUPINFO();
             PROCESS_INFORMATION processInfo = new PROCESS_INFORMATION();
             info.cb = Marshal.SizeOf(info); 
