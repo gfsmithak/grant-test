@@ -89,20 +89,6 @@ namespace WindowsService
     {
 
 
-                 public enum SecurityImpersonationLevel
-{
-    SecurityAnonymous = 0,
-    SecurityIdentification = 1,
-    SecurityImpersonation = 2,
-    SecurityDelegation = 3
-}
-
-public enum TokenType
-{
-    TokenPrimary = 1,
-    TokenImpersonation = 2
-
-}
         
         //Def process info data structure for WINAPI    
         [StructLayout(LayoutKind.Sequential)]
