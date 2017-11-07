@@ -1,9 +1,9 @@
 Function Get-DellWarranty {
         
     param(
-    [parameter(valuefrompipeline=$true,Mandatory=$false)]
-    $Tags = (GC (read-host "Please enter the path to a text file containing your serial numbers.")),
-    [parameter(valuefrompipeline=$true,Mandatory=$True)]
+    [parameter(valuefrompipeline=$true)]
+    $Tags = (read-host "Please enter the path to a text file containing your serial numbers."),
+    [parameter(Mandatory=$True)]
     $DellAPIKey
 
     )
@@ -25,7 +25,7 @@ Function Get-DellWarranty {
 
         }
 
-  $tags | % {
+  gc $tags | % {
 
     $BaseUri     = "https://api.dell.com/support/assetinfo/v4/getassetwarranty/$($_)?apikey=$($DellAPIKey)"
    
@@ -70,4 +70,3 @@ Function Get-DellWarranty {
 
     write-host "Finished! Data output to $([Environment]::GetFolderPath("Desktop"))\final.csv"
 }
-
