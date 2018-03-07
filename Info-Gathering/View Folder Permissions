@@ -1,4 +1,4 @@
 ##Quick and dirty, basic filtering.
 
-gci C:\temp -recurse | % {$_.name,"`t$((get-acl $_.FullName).Access.Identityreference | ? {$_ -notlike "*built*" -and $_ -notlike "*NT Authority\System*"})" | out-file C:\test.csv -append}
+gci C:\temp -recurse | % {$_.name,"`t$((get-acl $_.FullName).Access.Identityreference | ? {$_ -notlike "*built*" -and $_ -notlike "*NT Authority\System*"})`n`n" | out-file C:\test.csv -append}
 
