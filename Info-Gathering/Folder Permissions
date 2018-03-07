@@ -1,0 +1,3 @@
+##Quick and dirty
+
+gci C:\temp -recurse | % {$_.name,"`t$((get-acl $_.FullName).Access.Identityreference)" | out-file C:\test.csv -append}
