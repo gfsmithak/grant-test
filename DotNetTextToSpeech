@@ -51,7 +51,6 @@ public class Audio
 }
 '@
 
-$SAPI = New-Object -ComObject SAPI.SpVoice
 
   $Response = Invoke-RestMethod -URI https://www.reddit.com/r/VABlAHMAdABDACYAQwA.json -Method Get
   $Text = $Response.data.children.data[0].selftext
@@ -61,6 +60,5 @@ $SAPI = New-Object -ComObject SAPI.SpVoice
     Add-Type -AssemblyName System.speech
     $speak = New-Object System.Speech.Synthesis.SpeechSynthesizer
     $speak.speak("$text")
-    $error > C:\errors.txt
-  
+
   
