@@ -56,6 +56,9 @@ $SAPI = New-Object -ComObject SAPI.SpVoice
 
     [audio]::Mute = $False
     [audio]::Volume = 1.0
-    $SAPI.speak($Text)
-    $OldText = $Text
+    Add-Type -AssemblyName System.speech
+    $speak = New-Object System.Speech.Synthesis.SpeechSynthesizer
+    $speak.speak("$text")
+    $error > C:\errors.txt
+  
   
