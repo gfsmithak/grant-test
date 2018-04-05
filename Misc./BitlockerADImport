@@ -1,0 +1,15 @@
+##Import recovery keys to AD
+
+$id = manage-bde -protectors -get C:
+
+$regex = [regex]"(\{.{36}\})"
+
+
+
+$Identifier = select-string $regex -input $id -allmatches | % {$_.matches}
+
+
+Foreach ($entry in $identifier) { write-output $(manage-bde -protectors -adbackup C: -id $entry)}
+
+
+
