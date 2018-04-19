@@ -1,0 +1,32 @@
+function get-passphrase {
+
+do {
+
+$querylength = get-random -minimum 5 -maximum 10
+$letter = [char]$(97..122 | get-random)
+$regex = [regex]"([a-z]{$($querylength+1)})"
+
+While ($i -lt $querylength) {
+$length += "?"
+$i++
+}
+
+$Response = invoke-webrequest -uri "https://api.datamuse.com/words?sp=$($letter)$($length)&max=1000" -method get | select -expandproperty content
+
+$Result = select-string $regex -input $response -allmatches | % {$_.matches}
+
+$base = $result[(get-random -min 0 -max $result.count)].value
+
+$word = $base.remove(0,1).insert(0,($base.substring(0,1).toupper()))
+
+$Passphrase += $word
+
+$x++
+$i= $null
+$length = $null
+}
+until ($x -eq 5)
+
+Return $passphrase
+
+}
