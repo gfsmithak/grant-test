@@ -1,8 +1,10 @@
 ##Download Uninstaller
-    invoke-webrequest -uri "https://support.lmjconsulting.com/Labtech/Deployment.aspx?ID=-2" -outfile C:\Windows\Temp\AgentUninstall.exe
+
+    (New-Object System.Net.WebClient).DownloadFile("https://support.lmjconsulting.com/Labtech/Deployment.aspx?ID=-2","C:\Temp\AgentUninstall.exe")
 
 ##Download Installer
-    invoke-webrequest -uri "https://support.lmjconsulting.com/Labtech/Deployment.aspx" -outfile C:\Windows\Temp\AgentInstall.exe
+
+    (New-Object System.Net.WebClient).DownloadFile("https://support.lmjconsulting.com/Labtech/Deployment.aspx","C:\Windows\Temp\AgentInstall.exe")
 
 ##Rip
 
@@ -23,6 +25,3 @@
 ##Reboot & Pray
 
     restart-computer -force
-
-
-
