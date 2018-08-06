@@ -1,0 +1,28 @@
+##Download Uninstaller
+    invoke-webrequest -uri "https://support.lmjconsulting.com/Labtech/Deployment.aspx?ID=-2" -outfile C:\Windows\Temp\AgentUninstall.exe
+
+##Download Installer
+    invoke-webrequest -uri "https://support.lmjconsulting.com/Labtech/Deployment.aspx" -outfile C:\Windows\Temp\AgentInstall.exe
+
+##Rip
+
+    start-process C:\temp\agentuninstall.exe -argumentlist "/s"
+
+    Remove-item -path "HKLM:\Software\Labtech" -recurse -confirm:$false
+
+##Prepare to replace
+
+    $RegPath = "HKLM:\Software\Microsoft\Windows\CurrentVersion\RunOnce"
+
+    $name = "LabtechInstall"
+
+    $value = "C:\\Windows\\Temp\\AgentInstall.exe /s"
+
+    new-itemproperty -path $RegPath -name $name -value $value -PropertyType STRING -force | out-null
+
+##Reboot & Pray
+
+    restart-computer
+
+
+
