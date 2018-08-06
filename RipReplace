@@ -22,7 +22,7 @@
 
 ##Reboot & Pray
 
-    restart-computer
+    restart-computer -force
 
 
 
