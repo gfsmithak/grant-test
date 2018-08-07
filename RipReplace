@@ -9,6 +9,8 @@
 ##Rip
 
     start-process C:\Windows\temp\agentuninstall.exe -argumentlist "/s"
+    
+    sleep 120
 
     Remove-item -path "HKLM:\Software\Labtech" -recurse -confirm:$false
 
