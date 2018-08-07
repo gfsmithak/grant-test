@@ -23,5 +23,5 @@
     new-itemproperty -path $RegPath -name $name -value $value -PropertyType STRING -force | out-null
 
 ##Reboot & Pray
-
+    sleep 30
     restart-computer -force
