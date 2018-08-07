@@ -20,7 +20,7 @@
 
     $name = "LabtechInstall"
 
-    $value = "C:\\Windows\\Temp\\AgentInstall.exe /s"
+    $value = "C:\Windows\Temp\AgentInstall.exe /s"
 
     new-itemproperty -path $RegPath -name $name -value $value -PropertyType STRING -force | out-null
 
