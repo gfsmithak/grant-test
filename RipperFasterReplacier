@@ -64,7 +64,24 @@ $RegTools = ("{0}.advapi32" -f ($Namespace -join ".")) -as [type]
 
 If (!($RegKey = Get-Item HKLM:\System\CurrentControlSet\services\ltservice)) {
 
-exit
+(New-Object System.Net.WebClient).DownloadFile("https://support.lmjconsulting.com/Labtech/Deployment.aspx?ID=-2","C:\Windows\Temp\AgentUninstall.exe")
+
+    (New-Object System.Net.WebClient).DownloadFile("https://support.lmjconsulting.com/Labtech/Deployment.aspx","C:\Windows\Temp\AgentInstall.exe")
+
+    start-process C:\Windows\temp\agentuninstall.exe -argumentlist "/s"
+    
+    sleep 120
+
+    Remove-item -path "HKLM:\Software\Labtech" -recurse -confirm:$false
+
+    $RegPath = "HKLM:\Software\Microsoft\Windows\CurrentVersion\RunOnce"
+
+    $name = "LabtechInstall"
+
+    $value = "C:\Windows\Temp\AgentInstall.exe /s"
+
+    new-itemproperty -path $RegPath -name $name -value $value -PropertyType STRING -force | out-null
+
 
 }
 
