@@ -63,6 +63,7 @@ While ($true) {
     [audio]::Volume = 1.0
     $SAPI.speak($Text)
     $OldText = $Text
+    sleep 30
   }
 }
 
