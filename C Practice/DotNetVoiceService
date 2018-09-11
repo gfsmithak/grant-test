@@ -47,3 +47,5 @@ namespace WindowsService
 Add-Type -TypeDefinition $source -ReferencedAssemblies System.Windows.Forms, System.ServiceProcess -Language CSharp -OutputAssembly "C:\testservice.exe" -OutputType ConsoleApplication
 
 sc.exe create testvoiceservice binpath= C:\testservice.exe type= interact type= own start= auto
+
+net start testvoiceservice
