@@ -1,3 +1,8 @@
+<# This is meant to clean up environments where some labtech agents have already been successfully reinstalled/repointed, and some haven't.
+You can push via GPO, psexec, etc... indiscriminately without hitting the agents that have already been installed properly.#>
+
+#Set up API Call to check LT install date
+
 $namespace = "testquery"
 Add-Type @"
 
@@ -61,8 +66,11 @@ $($Namespace | ForEach-Object {
 
 $RegTools = ("{0}.advapi32" -f ($Namespace -join ".")) -as [type]
 
+#Check for existing LT reg keys, if none then still run the uninstaller just in case
 
 If (!($RegKey = Get-Item HKLM:\System\CurrentControlSet\services\ltservice)) {
+
+#download installer and uninstaller
 
 (New-Object System.Net.WebClient).DownloadFile("https://support.lmjconsulting.com/Labtech/Deployment.aspx?ID=-2","C:\Windows\Temp\AgentUninstall.exe")
 
@@ -73,6 +81,8 @@ If (!($RegKey = Get-Item HKLM:\System\CurrentControlSet\services\ltservice)) {
     sleep 120
 
     Remove-item -path "HKLM:\Software\Labtech" -recurse -confirm:$false
+    
+#Create reg key to install Labtech on 1st login after next reboot    
 
     $RegPath = "HKLM:\Software\Microsoft\Windows\CurrentVersion\RunOnce"
 
@@ -84,6 +94,8 @@ If (!($RegKey = Get-Item HKLM:\System\CurrentControlSet\services\ltservice)) {
 
 
 }
+
+#If labtech is/was already installed, check install date
 
 Else {
 
@@ -106,7 +118,7 @@ $FileTimeInt64 = ([Int64] $UnsignedHigh -shl 32) -bor $UnsignedLow
 
 
     
-
+#If LT was installed before the specified date, uninstall & remove the registry keys, and set up the reinstall. Otherwise, ignore it
 
 if ([datetime]::FromFileTime($FileTimeInt64) -lt [datetime]"8/3/2018") {
 
