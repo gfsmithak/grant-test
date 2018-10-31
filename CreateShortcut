@@ -1,0 +1,6 @@
+$shell = new-object -com wscript.shell
+$shortcut=$shell.createshortcut("C:\users\public\desktop\Word.lnk")
+$shortcut.TargetPath="C:\Program Files (x86)\Microsoft Office\root\Office16\WINWORD.EXE"
+$shortcut.windowstyle=1
+$shortcut.description="Microsoft Word"
+$shortcut.save()
