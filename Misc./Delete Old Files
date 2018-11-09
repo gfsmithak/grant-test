@@ -1,0 +1,1 @@
+ $items=gci $path | foreach {if ($_.lastwritetime -lt (get-date).adddays(-30)){remove-item $_.fullname}}
