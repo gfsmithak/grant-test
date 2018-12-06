@@ -1,0 +1,26 @@
+#Check if a user has logged into a machine
+#Call like this: powershell -executionpolicy bypass -command C:\test.ps1 -usernames "test,gsmith"
+Param(
+[String[]]$usernames = @()
+)
+    try {
+            new-eventlog -logname application -source "UserCheck"
+        }
+    catch {
+            continue
+        }
+
+$Reg=gci "hklm:\software\microsoft\windows nt\currentversion\profilelist" | % {get-itemproperty $_.pspath}
+
+    Foreach ($user in $usernames) {
+        
+
+        if ($Reg.profileimagepath -match $User) {
+
+                Write-eventlog -logname Application -Source UserCheck -entrytype Information -EventID 1 -message "$User found"
+            }
+
+        Else {
+                Write-eventlog -logname Application -Source UserCheck -entrytype Information -EventID 2 -message "$User not found"
+            }
+        }
