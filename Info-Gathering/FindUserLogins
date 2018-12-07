@@ -14,8 +14,10 @@ $Reg=gci "hklm:\software\microsoft\windows nt\currentversion\profilelist" | % {g
 
     Foreach ($user in $usernames) {
         
-
-        if ($Reg.profileimagepath -match $User) {
+        #For some reason this doesn't match on Windows 7? No idea why, the data is there and it worked just fine on every other OS
+        #if ($Reg.profileimagepath -match $User) { 
+        #
+         if (($Reg | select profileimagepath) -match $User) {
 
                 Write-eventlog -logname Application -Source UserCheck -entrytype Information -EventID 1 -message "$User found"
             }
