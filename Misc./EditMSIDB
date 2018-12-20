@@ -1,0 +1,29 @@
+#Example pulled from Cylance deployment script I'm developing
+
+$MSIPath="C:\windows\temp\cy-protect.msi"
+$WIObject=new-object -comobject WindowsInstaller.Installer
+$MSIOpenDatabaseModeTransact=1
+
+$MSIDB = $WIObject.GetType().InvokeMember(
+    	"OpenDatabase", 
+    	"InvokeMethod", 
+    	$Null, 
+    	$WIObject, 
+    	@($MSIPath, $MSIOpenDatabaseModeTransact)
+    ) 
+
+$Query = "INSERT INTO ``Property`` (``Property``,``Value``) VALUES ('PIDKEY','<Your Token Here>')"	
+
+$Insert = $MSIDB.GetType().InvokeMember(
+    	"OpenView",
+    	"InvokeMethod",
+    	$Null,
+    	$MSIDB,
+    	($Query)
+    )
+
+$Insert.GetType().InvokeMember("Execute", "InvokeMethod", $Null, $Insert, $Null)		
+$Insert.GetType().InvokeMember("Close", "InvokeMethod", $Null, $Insert, $Null)
+[System.Runtime.Interopservices.Marshal]::ReleaseComObject($Insert) | Out-Null
+$MSIDB.GetType().InvokeMember("Commit", "InvokeMethod", $Null, $MSIDB, $Null)
+[System.Runtime.Interopservices.Marshal]::ReleaseComObject($MSIDB) | Out-Null 
