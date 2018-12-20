@@ -34,7 +34,7 @@ $MSIDB = $WIObject.GetType().InvokeMember(
     	@($MSIPath, $MSIOpenDatabaseModeTransact)
     ) 
 
-$Query = "INSERT INTO ``Property`` (``Property``,``Value``) VALUES ('PIDKEY','cWehHlt8FHYLAp80S9BHNi1o')"
+$Query = "INSERT INTO ``Property`` (``Property``,``Value``) VALUES ('PIDKEY','')"
 $Query = "INSERT INTO ``Property`` (``Property``,``Value``) VALUES ('LAUNCHAPP','0')"
 
 $Insert = $MSIDB.GetType().InvokeMember(
