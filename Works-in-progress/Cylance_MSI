@@ -1,0 +1,54 @@
+Function Prep-CylanceInstaller {
+Param(
+[cmdletbinding]
+[mandatory=$True]
+[String]$PIDKey
+[ValidateSet("0","1")]
+[String]$LAUNCHAPP
+[ValidateSet("1","2")]
+[String]$SLEFPROTECTIONLEVEL
+[String]$APPFOLDER
+[ValidateSet("0","1")]
+[String]$REGWSC
+[String]$VENUEZONE
+[mandatory=$True]
+[string]$MSIPath
+
+If (!(test-path $MSIPATH)) {
+    
+    write-output "$($MSIPATH) is not a valid path"
+    
+    return
+   
+    }
+
+
+$WIObject=new-object -comobject WindowsInstaller.Installer
+$MSIOpenDatabaseModeTransact=1
+
+$MSIDB = $WIObject.GetType().InvokeMember(
+    	"OpenDatabase", 
+    	"InvokeMethod", 
+    	$Null, 
+    	$WIObject, 
+    	@($MSIPath, $MSIOpenDatabaseModeTransact)
+    ) 
+
+$Query = "INSERT INTO ``Property`` (``Property``,``Value``) VALUES ('PIDKEY','cWehHlt8FHYLAp80S9BHNi1o')"
+$Query = "INSERT INTO ``Property`` (``Property``,``Value``) VALUES ('LAUNCHAPP','0')"
+
+$Insert = $MSIDB.GetType().InvokeMember(
+    	"OpenView",
+    	"InvokeMethod",
+    	$Null,
+    	$MSIDB,
+    	($Query)
+    )
+
+$Insert.GetType().InvokeMember("Execute", "InvokeMethod", $Null, $Insert, $Null)		
+$Insert.GetType().InvokeMember("Close", "InvokeMethod", $Null, $Insert, $Null)
+[System.Runtime.Interopservices.Marshal]::ReleaseComObject($Insert) | Out-Null
+$MSIDB.GetType().InvokeMember("Commit", "InvokeMethod", $Null, $MSIDB, $Null)
+[System.Runtime.Interopservices.Marshal]::ReleaseComObject($MSIDB) | Out-Null 
+
+}
