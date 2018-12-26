@@ -1,0 +1,88 @@
+param(
+[string]$Token
+)
+
+function Expand-ZIPFile($file, $destination)
+{
+$shell = new-object -com shell.application
+$zip = $shell.NameSpace($file)
+foreach($item in $zip.items())
+{
+$shell.Namespace($destination).copyhere($item)
+}
+}
+
+new-item -type directory "C:\CylanceDeploy"
+
+new-smbshare -name "Cylance" -path "C:\CylanceDeploy" -FullAccess "Everyone"
+
+expand-zipfile -file "C:\CylanceGPO.zip" -destination "C:\CylanceDeploy"
+
+$GPO = import-gpo -backupid "{014789D3-1F9A-469D-88AC-8C2432D3C9E4}" -targetname "CylanceDeploy" -path "C:\CylanceDeploy" -CreateIfNeeded
+
+$CDef = @" 
+        [DllImport("Msi.dll")] public static extern int MsiAdvertiseProductA(string szPackagePath, string szScriptfilepath, string szTransforms, int lgidLanguage); 
+"@
+
+$Method = Add-Type -Name MsiAdvertiseProductATest -MemberDefinition $CDef -PassThru
+
+$method::MsiAdvertiseProductA("\\$env:computername\cylance\cy-protect.msi","C:\cylancedeploy\deploy.aas", $Null, "0x00")
+
+$SharePath = get-adobject -searchbase "CN=Packages,CN=Class Store,CN=Machine,CN={$($GPO.id.tostring())},CN=Policies,CN=System,DC=$env:userdomain,DC=local" -filter *
+
+set-adobject $SharePath[1].tostring() -replace @{'msiFileList' = "0:\\$env:Computername\Cylance\cy-protect.msi"}
+set-adobject $SharePath[1].tostring() -replace @{'msiScriptPath' = "\\$env:Computername\Cylance\deploy.aas"}
+
+
+
+$WIObject = new-object -comobject WindowsInstaller.Installer
+$MSIOpenDatabaseModeTransact = 1
+$MSIPath = "C:\CylanceDeploy\Cy-Protect.msi"
+
+$MSIDB = $WIObject.GetType().InvokeMember(
+    	"OpenDatabase", 
+    	"InvokeMethod", 
+    	$Null, 
+    	$WIObject, 
+    	@($MSIPath, $MSIOpenDatabaseModeTransact)
+    ) 
+
+$Query1 = "INSERT INTO ``Property`` (``Property``,``Value``) VALUES ('PIDKEY','$Token')"
+$Query2 = "INSERT INTO ``Property`` (``Property``,``Value``) VALUES ('LAUNCHAPP','0')"
+
+$Insert = $MSIDB.GetType().InvokeMember(
+    	"OpenView",
+    	"InvokeMethod",
+    	$Null,
+    	$MSIDB,
+    	($Query1)
+    )
+
+$Insert.GetType().InvokeMember("Execute", "InvokeMethod", $Null, $Insert, $Null)		
+$Insert.GetType().InvokeMember("Close", "InvokeMethod", $Null, $Insert, $Null)
+
+$Insert = $MSIDB.GetType().InvokeMember(
+    	"OpenView",
+    	"InvokeMethod",
+    	$Null,
+    	$MSIDB,
+    	($Query2)
+    )
+
+$Insert.GetType().InvokeMember("Execute", "InvokeMethod", $Null, $Insert, $Null)		
+$Insert.GetType().InvokeMember("Close", "InvokeMethod", $Null, $Insert, $Null)
+[System.Runtime.Interopservices.Marshal]::ReleaseComObject($Insert) | Out-Null
+$MSIDB.GetType().InvokeMember("Commit", "InvokeMethod", $Null, $MSIDB, $Null)
+[System.Runtime.Interopservices.Marshal]::ReleaseComObject($MSIDB) | Out-Null 
+
+$CDef = @" 
+        [DllImport("Msi.dll")] public static extern int MsiAdvertiseProductA(string szPackagePath, string szScriptfilepath, string szTransforms, int lgidLanguage); 
+"@
+
+$Method = Add-Type -Name MsiAdvertiseProductATest -MemberDefinition $CDef -PassThru
+
+$method::MsiAdvertiseProductA("\\$env:computername\cylance\cy-protect.msi","C:\cylancedeploy\deploy.aas", $Null, "0x00")
+
+
+
+
