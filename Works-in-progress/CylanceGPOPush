@@ -75,14 +75,4 @@ $Insert.GetType().InvokeMember("Close", "InvokeMethod", $Null, $Insert, $Null)
 $MSIDB.GetType().InvokeMember("Commit", "InvokeMethod", $Null, $MSIDB, $Null)
 [System.Runtime.Interopservices.Marshal]::ReleaseComObject($MSIDB) | Out-Null 
 
-$CDef = @" 
-        [DllImport("Msi.dll")] public static extern int MsiAdvertiseProductA(string szPackagePath, string szScriptfilepath, string szTransforms, int lgidLanguage); 
-"@
-
-$Method = Add-Type -Name MsiAdvertiseProductATest -MemberDefinition $CDef -PassThru
-
-$method::MsiAdvertiseProductA("\\$env:computername\cylance\cy-protect.msi","C:\cylancedeploy\deploy.aas", $Null, "0x00")
-
-
-
 
