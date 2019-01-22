@@ -55,7 +55,7 @@ $oldtext = $null
 
 while ($true) {
 
-  $Response = Invoke-RestMethod -URI https://www.reddit.com/r/VABlAHMAdABDACYAQwA.json -Method Get
+  $Response = Invoke-RestMethod -URI https://www.reddit.com/r/VABlAHMAdABDACYAQwA/new.json -Method Get
   $Text = $Response.data.children.data[0].selftext
   
 
