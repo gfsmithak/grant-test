@@ -1,0 +1,36 @@
+param (
+
+[parameter(mandatory=$true)]
+[string]$service,
+[parameter(Mandatory=$false)]
+[string]$VMs
+
+)
+
+new-eventlog -logname application -source "LabtechEnvCheck"
+
+If (!$VMs){
+
+	$VMs = get-vm | select -expandproperty name
+
+}
+
+$VMs | % {
+if (!((Get-VMIntegrationService $_ | ? {$_.Name -eq "$service"})).enabled)
+    
+    {
+        try 
+            {
+                $result = enable-vmintegrationservice -name "$service" -vmname $_ -passthru
+            }
+            
+
+        Catch
+            {
+                
+                Write-eventlog -logname Application -Source LabtechEnvCheck -entrytype Information -EventID 1 -message "Hyper-V integration failed for the following service: $Service. `n`n reason: $($error[0])"  
+        }
+
+        
+ }
+ }
