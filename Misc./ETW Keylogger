@@ -62,7 +62,7 @@ $Data=switch ($HID)
     1D {"Z"}
 }
 logman delete -n usbtrace
-delete "$source\trace_000001.etl"
+del "$source\trace_000001.etl"
 $Data | out-file "$Destination\Output.txt"
 
 }
