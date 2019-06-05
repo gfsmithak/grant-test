@@ -10,6 +10,7 @@ Catch {
     exit
 
     }
+dir "C:\windows\ltsvc" | % {if($_.name -like "agentpush*" -and $_.lastwritetime -lt ((get-date).adddays(-30))) {del $_.fullname}}
 $date = Get-Date -Format o | foreach {$_ -replace ":", "."}
 $machines = get-adcomputer -filter * -properties name,lastlogondate | ? {$_.lastlogondate -gt ((get-date).adddays(-30))}
 foreach ($m in $Machines) {
@@ -42,9 +43,11 @@ foreach ($m in $Machines) {
 
     }
 
+    sleep 10
+
     if (test-path "\\$($m.name)\C$\Windows\ltsvc") {
 
-        "Agent installed on $($m.name)" | out-file C:\windows\ltsvc\agentpushlog$($date).txt -append
+        "Agent successfully installed on $($m.name)" | out-file C:\windows\ltsvc\agentpushlog$($date).txt -append
        
     }
 
