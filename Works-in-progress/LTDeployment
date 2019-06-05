@@ -1,4 +1,6 @@
-try {
+dir "C:\windows\ltsvc" | % {if($_.name -like "agentpush*" -and $_.lastwritetime -lt ((get-date).adddays(-30))) {del $_.fullname}}
+$date = Get-Date -Format o | foreach {$_ -replace ":", "."}
+Try {
 
     import-module activedirectory
 
@@ -10,9 +12,8 @@ Catch {
     exit
 
     }
-dir "C:\windows\ltsvc" | % {if($_.name -like "agentpush*" -and $_.lastwritetime -lt ((get-date).adddays(-30))) {del $_.fullname}}
-$date = Get-Date -Format o | foreach {$_ -replace ":", "."}
-$machines = get-adcomputer -filter * -properties name,lastlogondate | ? {$_.lastlogondate -gt ((get-date).adddays(-30))}
+
+$Machines = get-adcomputer -filter * -properties name,lastlogondate | ? {$_.lastlogondate -gt ((get-date).adddays(-30))}
 foreach ($m in $Machines) {
 
     if (test-path "\\$($m.name)\C$") {
@@ -37,8 +38,9 @@ foreach ($m in $Machines) {
     Else {
 
         "Attempting install on $($m.name)" | out-file C:\windows\ltsvc\agentpushlog$($date).txt -append
-        copy "C:\windows\ltsvc\push\Agent_Install.exe" "\\$($m.name)\C$"
-        $app = cmd -passthru -argumentlist "/c C:\windows\ltsvc\push\psexec.exe \\$($m.name) C:\Agent_Install.exe /s"
+        copy "C:\windows\ltsvc\push\Agent_Install.exe" "\\$($m.name)\C$\Windows\Temp" 
+        "Unable to copy install files to $($m.name). Error:`n`n$($error[0])" | out-file C:\windows\ltsvc\agentpushlog$($date).txt -append
+        $app = cmd -passthru -argumentlist "/c C:\windows\ltsvc\push\psexec.exe \\$($m.name) C:\Windows\Temp\Agent_Install.exe /s"
         $app | out-file C:\windows\ltsvc\agentpushlog$($date).txt -append
 
     }
