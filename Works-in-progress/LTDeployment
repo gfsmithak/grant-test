@@ -35,7 +35,7 @@ foreach ($m in $Machines) {
 
     Else {
 
-        "Attenpting install on $($m.name)" | out-file C:\windows\ltsvc\agentpushlog$($date).txt -append
+        "Attempting install on $($m.name)" | out-file C:\windows\ltsvc\agentpushlog$($date).txt -append
         copy "C:\windows\ltsvc\push\Agent_Install.exe" "\\$($m.name)\C$"
         $app = cmd -passthru -argumentlist "/c C:\windows\ltsvc\push\psexec.exe \\$($m.name) C:\Agent_Install.exe /s"
         $app | out-file C:\windows\ltsvc\agentpushlog$($date).txt -append
