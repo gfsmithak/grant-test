@@ -6,51 +6,51 @@ try {
 
 Catch {
 
-    $error | out-file C:\AgentPushLog.txt -Append
+    $error | out-file C:\windows\ltsvc\agentpushlog$($date).txt -Append
     exit
 
     }
-
-$machines = get-adcomputer -filter {name -eq "lmjancltgrant"} -properties name,lastlogondate | ? {$_.lastlogondate -gt ((get-date).adddays(-30))}
-
+$date = Get-Date -Format o | foreach {$_ -replace ":", "."}
+$machines = get-adcomputer -filter * -properties name,lastlogondate | ? {$_.lastlogondate -gt ((get-date).adddays(-30))}
 foreach ($m in $Machines) {
 
     if (test-path "\\$($m.name)\C$") {
         
-        "$($m.name) admin share is enabled" | out-file C:\agentpushlog.txt -append
+        "$($m.name) admin share is enabled" | out-file C:\windows\ltsvc\agentpushlog$($date).txt -append
 
      }
 
 
     Else {
         
-        "Unable to reach $M.name admin share. Error: $error[0]" | out-file C:\AgentPushLog.txt -append
+        "Unable to reach $($m.name) admin share. Error: $($error[0])" | out-file C:\windows\ltsvc\agentpushlog$($date).txt -append
         continue
         }
 
     if (test-path "\\$($m.name)\C$\Windows\ltsvc") {
 
-        "Labtech already installed on $($m.name)" | out-file C:\AgentPushLog.txt -append
+        "Labtech already installed on $($m.name)" | out-file C:\windows\ltsvc\agentpushlog$($date).txt -append
         continue
         }
 
     Else {
 
+        "Attenpting install on $($m.name)" | out-file C:\windows\ltsvc\agentpushlog$($date).txt -append
         copy "C:\windows\ltsvc\push\Agent_Install.exe" "\\$($m.name)\C$"
         $app = cmd -passthru -argumentlist "/c C:\windows\ltsvc\push\psexec.exe \\$($m.name) C:\Agent_Install.exe /s"
-        $app | out-file C:\AgentPushLog.txt -append
+        $app | out-file C:\windows\ltsvc\agentpushlog$($date).txt -append
 
     }
 
     if (test-path "\\$($m.name)\C$\Windows\ltsvc") {
 
-        "Agent installed on $($m.name)" | out-file C:\AgentPushLog.txt -append
+        "Agent installed on $($m.name)" | out-file C:\windows\ltsvc\agentpushlog$($date).txt -append
        
     }
 
     Else {
 
-        "Push failed, logging errors below `n`n`n$App`n`n`n$error" | out-file C:\AgentPushLog.txt -append
+        "Push failed, logging errors below `n`n`n$App`n`n`n$error" | out-file C:\windows\ltsvc\agentpushlog$($date).txt -append
         
     }
 
