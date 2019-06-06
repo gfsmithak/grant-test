@@ -25,7 +25,7 @@ foreach ($m in $Machines) {
 
     Else {
         
-        "Unable to reach $($m.name) admin share. Error: $($error[0])" | out-file C:\windows\ltsvc\agentpushlog$($date).txt -append
+        "Unable to reach $($m.name) admin share." | out-file C:\windows\ltsvc\agentpushlog$($date).txt -append
         continue
         }
 
