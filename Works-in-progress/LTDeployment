@@ -59,3 +59,4 @@ foreach ($m in $Machines) {
     }
 
 }
+"Push complete" | out-file C:\windows\ltsvc\agentpushlog$($date).txt -append
