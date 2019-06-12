@@ -9,19 +9,6 @@ $date = Get-Date -Format o | foreach {$_ -replace ":", "."}
 
 Try {
 
-    test-path "C:\windows\ltsvc\push\"
-
-    }
-
-Catch {
-
-    "System file download failed; $($error)" | out-file C:\windows\ltsvc\agentpushlog$($date).txt -Append
-
-    exit
-
-}
-Try {
-
     import-module activedirectory
 
     }
