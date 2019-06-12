@@ -1,5 +1,25 @@
+param (
+
+[String]$LID = "1"
+
+)
+
 dir "C:\windows\ltsvc" | % {if($_.name -like "agentpush*" -and $_.lastwritetime -lt ((get-date).adddays(-30))) {del $_.fullname}}
 $date = Get-Date -Format o | foreach {$_ -replace ":", "."}
+
+Try {
+
+    test-path "C:\windows\ltsvc\push\"
+
+    }
+
+Catch {
+
+    "System file download failed; $($error)" | out-file C:\windows\ltsvc\agentpushlog$($date).txt -Append
+
+    exit
+
+}
 Try {
 
     import-module activedirectory
@@ -38,8 +58,8 @@ foreach ($m in $Machines) {
     Else {
 
         "Attempting install on $($m.name)" | out-file C:\windows\ltsvc\agentpushlog$($date).txt -append
-        copy "C:\windows\ltsvc\push\Agent_Install.exe" "\\$($m.name)\C$\Windows\Temp"
-        $app = cmd -passthru -argumentlist "/c C:\windows\ltsvc\push\psexec.exe \\$($m.name) C:\Windows\Temp\Agent_Install.exe /s"
+        copy "C:\windows\ltsvc\push\Agent_Install.msi" "\\$($m.name)\C$\Windows\Temp"
+        $app = cmd -passthru -argumentlist "/c C:\windows\ltsvc\push\psexec.exe \\$($m.name) msiexec /i C:\windows\temp\Agent_Install.msi /quiet LOCATION=`"$($LID)`""
         $app | out-file C:\windows\ltsvc\agentpushlog$($date).txt -append
 
     }
