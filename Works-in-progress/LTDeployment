@@ -46,7 +46,8 @@ foreach ($m in $Machines) {
 
         "Attempting install on $($m.name)" | out-file C:\windows\ltsvc\agentpushlog$($date).txt -append
         copy "C:\windows\ltsvc\push\Agent_Install.msi" "\\$($m.name)\C$\Windows\Temp"
-        $app = cmd -passthru -argumentlist "/c C:\windows\ltsvc\push\psexec.exe \\$($m.name) msiexec /i C:\windows\temp\Agent_Install.msi /quiet LOCATION=`"$($LID)`""
+        $app = cmd -passthru -argumentlist /c "C:\windows\ltsvc\push\psexec.exe \\$($M.Name) msiexec /i C:\windows\temp\Agent_Install.msi /quiet LOCATION=`"$($LID)`""
+
         $app | out-file C:\windows\ltsvc\agentpushlog$($date).txt -append
 
     }
