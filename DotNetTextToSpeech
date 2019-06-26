@@ -1,6 +1,9 @@
 ##SAPI crashes if run in session 0, no idea why. The .net speech asemblies work just fine.
+##Edited for .Net 2.0 support- more "usings" yay! Strongly typed variables yay!
 
 Add-Type -TypeDefinition @'
+using System;
+using System.Runtime;
 using System.Runtime.InteropServices;
 [Guid("5CDF2C82-841E-4546-9722-0CF74078229A"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
 interface IAudioEndpointVolume
@@ -30,11 +33,11 @@ public class Audio
 {
     static IAudioEndpointVolume Vol()
     {
-        var enumerator = new MMDeviceEnumeratorComObject() as IMMDeviceEnumerator;
+        IMMDeviceEnumerator enumerator = new MMDeviceEnumeratorComObject() as IMMDeviceEnumerator;
         IMMDevice dev = null;
         Marshal.ThrowExceptionForHR(enumerator.GetDefaultAudioEndpoint(/*eRender*/ 0, /*eMultimedia*/ 1, out dev));
         IAudioEndpointVolume epv = null;
-        var epvid = typeof(IAudioEndpointVolume).GUID;
+        Guid epvid = typeof(IAudioEndpointVolume).GUID;
         Marshal.ThrowExceptionForHR(dev.Activate(ref epvid, /*CLSCTX_ALL*/ 23, 0, out epv));
         return epv;
     }
