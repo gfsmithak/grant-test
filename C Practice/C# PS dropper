@@ -1,6 +1,6 @@
 ##Generates an executable that invokes the given script.
 
-source = @'
+$source = @'
 using System;
 using System.Diagnostics;
     class Test {
