@@ -1,0 +1,13 @@
+get-cyapi -console LMJ_HFM
+
+$user = (get-cyuserlist | sort date_created)[0].email
+
+$policies = get-cypolicylist | ? {$_.name -like "*PC*"}
+
+foreach ($policy in $Policies) {
+
+$PolicyObject = $policy | get-cypolicy
+$PolicyObject.script_control.activescript_settings.control_mode = "Block"
+$PolicyObject | update-cypolicy -user $user
+
+}
