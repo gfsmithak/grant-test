@@ -1,0 +1,19 @@
+Add-PSSnapin VEEAMPSSNapin
+
+find-vbrhventity | ? {$_.type -eq "Vm"} | Add-VBRHvBackupJob -name "test Job" -BackupRepository "VEEAM Local Repository" -description "This is a test job" 
+
+$Job = get-vbrjob -name "Test Job" 
+
+$options = $job | Get-VBRJobOptions
+
+$options.backupstorageoptions.retaincycles = "90"
+$options.JobOptions.RunManually=$false
+
+Set-VBRJobOptions -job $job -options $options
+
+Set-VBRJobAdvancedBackupOptions -job "Test Job" -TransformFullToSyntethic $false -enablefullbackup $false -Algorithm "Incremental"
+
+set-vbrjobschedule -job $job -daily -at "20:00" -dailykind Everyday
+
+set-vbrjobproxy -job $job -AutoDetect
+
