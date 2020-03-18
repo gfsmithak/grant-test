@@ -1,0 +1,7 @@
+##This particular object didn't use the ToString() function.
+
+$MD5=new-object -typename system.security.cryptography.md5cryptoserviceprovider
+$utf8 = New-Object -TypeName System.Text.UTF8Encoding
+[system.bitconverter]::tostring($MD5.computehash($utf8.GetBytes($($blockstandard | out-string))))
+
+[system.bitconverter]::tostring($MD5.computehash($utf8.GetBytes($($terminatestandard | out-string))))
