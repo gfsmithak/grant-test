@@ -1,0 +1,86 @@
+<#Service- run on NOCWALL, custom command 155 to trigger arbitrary audio file. Encoded command:
+
+$Play=new-object system.media.soundplayer;$play.soundlocation = "C:\Windows\WinSxS\amd64_microsoft-windows-shell-sounds_31bf3856ad364e35_10.0.18362.1_none_e96fec2e32c20607\chimes.wav";$play.playsync()
+
+#>
+
+$source = @"
+using System;
+using System.ServiceProcess;
+using System.Diagnostics;
+using System.Windows.Forms;
+
+namespace WindowsService
+{
+    public partial class Service : ServiceBase
+    {
+        
+        public enum ServiceCommands {Command = 155};
+
+        public Service()
+        {
+            this.ServiceName = "Test Service";
+            this.EventLog.Log = "Application";
+            this.CanHandlePowerEvent = false;
+            this.CanHandleSessionChangeEvent = false;
+            this.CanPauseAndContinue = false;
+            this.CanShutdown = false;
+            this.CanStop = true;
+        }
+
+
+        static void Main()
+        {
+            ServiceBase.Run(new Service());
+        }
+
+        protected override void OnStart(string[] args)
+        {
+            Process.Start("Powershell.exe",
+            "-encodedcommand DQAKACQAUABsAGEAeQA9AG4AZQB3AC0AbwBiAGoAZQBjAHQAIABzAHkAcwB0AGUAbQAuAG0AZQBkAGkAYQAuAHMAbwB1AG4AZABwAGwAYQB5AGUAcgA7ACQAcABsAGEAeQAuAHMAbwB1AG4AZABsAG8AYwBhAHQAaQBvAG4AIAA9ACAAIgBDADoAXABXAGkAbgBkAG8AdwBzAFwAVwBpAG4AUwB4AFMAXABhAG0AZAA2ADQAXwBtAGkAYwByAG8AcwBvAGYAdAAtAHcAaQBuAGQAbwB3AHMALQBzAGgAZQBsAGwALQBzAG8AdQBuAGQAcwBfADMAMQBiAGYAMwA4ADUANgBhAGQAMwA2ADQAZQAzADUAXwAxADAALgAwAC4AMQA4ADMANgAyAC4AMQBfAG4AbwBuAGUAXwBlADkANgBmAGUAYwAyAGUAMwAyAGMAMgAwADYAMAA3AFwAYwBoAGkAbQBlAHMALgB3AGEAdgAiADsAJABwAGwAYQB5AC4AcABsAGEAeQBzAHkAbgBjACgAKQANAAoA");
+
+        }
+
+        protected override void OnStop()
+        {
+           
+        }
+
+        protected override void OnCustomCommand(int command)
+        {
+           base.OnCustomCommand(command);
+           switch(command)
+           { 
+            case(int)ServiceCommands.Command:
+            Process.Start("Powershell.exe",
+            "-encodedcommand DQAKACQAUABsAGEAeQA9AG4AZQB3AC0AbwBiAGoAZQBjAHQAIABzAHkAcwB0AGUAbQAuAG0AZQBkAGkAYQAuAHMAbwB1AG4AZABwAGwAYQB5AGUAcgA7ACQAcABsAGEAeQAuAHMAbwB1AG4AZABsAG8AYwBhAHQAaQBvAG4AIAA9ACAAIgBDADoAXABXAGkAbgBkAG8AdwBzAFwAVwBpAG4AUwB4AFMAXABhAG0AZAA2ADQAXwBtAGkAYwByAG8AcwBvAGYAdAAtAHcAaQBuAGQAbwB3AHMALQBzAGgAZQBsAGwALQBzAG8AdQBuAGQAcwBfADMAMQBiAGYAMwA4ADUANgBhAGQAMwA2ADQAZQAzADUAXwAxADAALgAwAC4AMQA4ADMANgAyAC4AMQBfAG4AbwBuAGUAXwBlADkANgBmAGUAYwAyAGUAMwAyAGMAMgAwADYAMAA3AFwAYwBoAGkAbQBlAHMALgB3AGEAdgAiADsAJABwAGwAYQB5AC4AcABsAGEAeQBzAHkAbgBjACgAKQANAAoA");
+            break;
+            }
+        }
+    }
+}
+
+"@
+Add-Type -TypeDefinition $source -ReferencedAssemblies System.Windows.Forms, System.ServiceProcess -Language CSharp -OutputAssembly "C:\BellRingService.exe" -OutputType ConsoleApplication
+
+sc.exe create BellRingService binpath= C:\BellRingService.exe type= interact type= own start= auto
+
+
+<#Trigger, portable executable- right now this just runs locally obviously, just a POC. Probably just need to write my own call to the SCM 
+and not fuck around with PSRemoting or PSEXEC
+#>
+
+$source = @'
+using System;
+using System.Diagnostics;
+    class Test {
+        static void Main() {
+            Process.Start("cmd.exe",
+            "/c sc.exe control BellRingService 155");
+            }
+         }
+
+'@
+
+Add-Type -TypeDefinition $source -Language CSharp -OutputAssembly "C:\trigger.exe" -OutputType ConsoleApplication
+
