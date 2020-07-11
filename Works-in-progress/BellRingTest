@@ -1,4 +1,8 @@
-<#Service- run on NOCWALL, custom command 155 to trigger arbitrary audio file. Encoded command:
+<#Service- run on NOCWALL, custom command 155 to trigger arbitrary audio file. Goal is to have a button the sales guys can press to announce a new deal.
+
+Haven't decided on a real trigger yet but POC is below.
+
+Encoded command:
 
 $Play=new-object system.media.soundplayer;$play.soundlocation = "C:\Windows\WinSxS\amd64_microsoft-windows-shell-sounds_31bf3856ad364e35_10.0.18362.1_none_e96fec2e32c20607\chimes.wav";$play.playsync()
 
