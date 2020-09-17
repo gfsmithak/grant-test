@@ -1,0 +1,18 @@
+##Append location (CA vs AK) to time entries against each company
+
+$time = import-csv "<time entry export>"
+
+$companies = import-csv "<company export>"
+
+foreach ($t in $time) {
+
+    $companies | % { 
+
+        if ($_.'company name' -match $T.Company) {
+        
+                $T | add-member -NotePropertyName "Office" -NotePropertyValue $_.state -force}
+             }
+          }
+
+
+$time | export-csv "C:\example.csv"
