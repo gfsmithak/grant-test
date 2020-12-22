@@ -1,0 +1,18 @@
+##Server Side##
+$PipeACL = new-object System.IO.Pipes.PipeSecurity
+$AccessRule = New-Object System.IO.Pipes.PipeAccessRule( "Everyone", "FullControl", "Allow" )
+$PipeACL.AddAccessRule($AccessRule)
+$pipeserver=new-object System.IO.Pipes.NamedPipeServerStream("Test11","InOut",100, "Byte", "Asynchronous", 32768, 32768, $PipeACL)
+
+$pipeReader = new-object System.IO.StreamReader($pipeserver)
+$pipeWriter = new-object System.IO.StreamWriter($pipeserver)
+
+$pipe.WaitForConnection()
+$pipewriter.AutoFlush = $true
+
+##Client Side, need to get access to IPC$ of server- net use \\server\IPC$ username password##
+$pipeClient = new-object System.IO.Pipes.NamedPipeClientStream("LMJANCVMMISC", 'test11', [System.IO.Pipes.PipeDirection]::InOut,[System.IO.Pipes.PipeOptions]::None, [System.Security.Principal.TokenImpersonationLevel]::Impersonation)
+$pipeReader = new-object System.IO.StreamReader($pipeClient)
+$pipeWriter = new-object System.IO.StreamWriter($pipeClient)
+$pipeClient.connect()
+$pipewriter.AutoFlush = $true
