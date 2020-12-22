@@ -7,7 +7,7 @@ $pipeserver=new-object System.IO.Pipes.NamedPipeServerStream("Test11","InOut",10
 $pipeReader = new-object System.IO.StreamReader($pipeserver)
 $pipeWriter = new-object System.IO.StreamWriter($pipeserver)
 
-$pipe.WaitForConnection()
+$pipeserver.WaitForConnection()
 $pipewriter.AutoFlush = $true
 
 ##Client Side, need to get access to IPC$ of server- net use \\server\IPC$ username password##
