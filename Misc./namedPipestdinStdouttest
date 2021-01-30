@@ -1,0 +1,24 @@
+$PipeACL = new-object System.IO.Pipes.PipeSecurity
+$AccessRule = New-Object System.IO.Pipes.PipeAccessRule( "Everyone", "FullControl", "Allow" )
+$PipeACL.AddAccessRule($AccessRule)
+$pipereadserver=new-object System.IO.Pipes.NamedPipeServerStream("read","InOut",10, "Byte", "Asynchronous", 4096, 4096, $PipeACL)
+
+$pipeReader = new-object System.IO.StreamReader($pipereadserver)
+
+$pipewriteserver=new-object System.IO.Pipes.NamedPipeServerStream("write","InOut",10, "Byte", "Asynchronous", 4096, 4096, $PipeACL)
+$pipeWriter = new-object System.IO.StreamWriter($pipewriteserver)
+
+$pipewriteserver.WaitForConnection();$pipereadserver.WaitForConnection()
+
+$Pipewriter.AutoFlush = $true
+
+##"Client" app for testing lol- from cmd:
+powershell.exe <\\.\pipe\write >\\.\pipe\read
+
+## to read/write
+
+$pipewriter.writeline("ipconfig")
+while ($Pipereader.peek() -ne 80) {$pipereader.readline()}
+$pipereader.discardbuffereddata()
+
+## rinse & repeat. Seems you need to clear the read pipe buffer after sending data to the write pipe, no idea why that's the case.
