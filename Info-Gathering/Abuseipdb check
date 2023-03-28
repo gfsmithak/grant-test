@@ -1,0 +1,20 @@
+$IPs = import-csv <path>
+
+$URI= "https://api.abuseipdb.com/api/v2/check"
+
+Foreach ($I in $IPs) {
+$Header=@{
+    'Key' = "<key>"
+    
+   }
+$body = @{
+   'ipAddress' = $I.ips;
+   'MaxAgeInDays' = '90';
+   'verbose' = '';
+   }
+
+$JSONResponse = Invoke-RestMethod -URI $URI -Header $Header -body $body  -ContentType 'application/json; charset=utf-8' -Method Get
+Write-host $I.ips,$jsonresponse.data.abuseConfidenceScore   
+ 
+
+}
