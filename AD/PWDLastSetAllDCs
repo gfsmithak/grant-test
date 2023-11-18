@@ -1,0 +1,85 @@
+Import-Module ActiveDirectory
+
+# Get all users from Active Directory
+$allUsers = Get-ADUser -Filter * -Properties Name, PasswordLastSet | Select Name, PasswordLastSet
+$enabledUsers = Get-ADUser -Filter {Enabled -eq $true} -Properties Name, PasswordLastSet | Select Name, PasswordLastSet
+$allUsersCount = $allUsers.Count
+$enabledUsersCount = $enabledUsers.Count
+
+# Get privileged users from Active Directory
+
+$enterpriseAdmins = Get-ADGroupMember -Identity "Enterprise Admins" -Recursive
+$schemaAdmins = Get-ADGroupMember -Identity "Schema Admins" -Recursive
+$domainAdmins = Get-ADGroupMember -Identity "Domain Admins" -Recursive
+$administrators = Get-ADGroupMember -Identity "Administrators" -Recursive
+
+$tempArray = @()
+
+ForEach($admin in $enterpriseAdmins){
+    $adm = $admin | Get-ADUser -Properties Name, sAMAccountName, PasswordLastSet, LastLogonDate, UserPrincipalName, PasswordNeverExpires, PasswordNotRequired, AllowReversiblePasswordEncryption, MemberOf, Enabled
+    $tempArray += $adm
+}
+
+ForEach($admin in $schemaAdmins){
+    $adm = $admin | Get-ADUser -Properties Name, sAMAccountName, PasswordLastSet, LastLogonDate, UserPrincipalName, PasswordNeverExpires, PasswordNotRequired, AllowReversiblePasswordEncryption, MemberOf, Enabled
+    $tempArray += $adm
+}
+
+ForEach($admin in $domainAdmins){
+    $adm = $admin | Get-ADUser -Properties Name, sAMAccountName, PasswordLastSet, LastLogonDate, UserPrincipalName, PasswordNeverExpires, PasswordNotRequired, AllowReversiblePasswordEncryption, MemberOf, Enabled
+    $tempArray += $adm
+}
+
+ForEach($admin in $administrators){
+    $adm = $admin | Get-ADUser -Properties Name, sAMAccountName, PasswordLastSet, LastLogonDate, UserPrincipalName, PasswordNeverExpires, PasswordNotRequired, AllowReversiblePasswordEncryption, MemberOf, Enabled
+    $tempArray += $adm
+}
+
+$uniqueAdmins = $tempArray | Sort-Object -Property Name | Get-Unique
+$privilegedUsers = $uniqueAdmins | Where-Object -Property Enabled -eq $true
+$privilegedUsersCount = $privilegedUsers.count
+
+# Get service account users from Active Directory
+
+$svcGroupName = "ALV - Service Accounts"
+$svcGroup = Get-ADGroup -Filter {Name -like $svcGroupName}
+$serviceUsers = $svcGroup | Get-ADGroupMember | Get-ADUser -Properties Enabled, PasswordLastSet | Where-Object {$_.Enabled -eq $true}
+$serviceUsersCount = $serviceUsers.Count
+
+# Get users who have changed their password since the targeted day of the month
+$targetedDay = 1 #integer 1-31 for day of month
+$currentMonth = (Get-Date).Month
+$currentYear = (Get-Date).Year
+$dayOfMonth = New-Object System.DateTime ($currentYear, $currentMonth, $targetedDay)
+$allPasswordChangedUsers = $allUsers | Where {($_.PasswordLastSet -ge $dayOfMonth) -or ($_.PasswordLastSet -eq $null)}
+$allPasswordChangedUsersCount = $allPasswordChangedUsers.Count
+$enabledPasswordChangedUsers = $enabledUsers | Where {($_.PasswordLastSet -ge $dayOfMonth) -or ($_.PasswordLastSet -eq $null)}
+$enabledPasswordChangedUsersCount = $enabledPasswordChangedUsers.Count
+$privilegedPasswordChangedUsers = $privilegedUsers | Where {($_.PasswordLastSet -ge $dayOfMonth) -or ($_.PasswordLastSet -eq $null)}
+$privilegedPasswordChangedUsersCount = $privilegedPasswordChangedUsers.Count
+$servicePasswordChangedUsers = $serviceUsers | Where {($_.PasswordLastSet -ge $dayOfMonth) -or ($_.PasswordLastSet -eq $null)}
+$servicePasswordChangedUsersCount = $servicePasswordChangedUsers.Count
+
+# Calculate percentage of users who have changed their password
+$allPercentage = [Math]::Round(($allPasswordChangedUsersCount / $allUsersCount) * 100)
+$enabledPercentage = [Math]::Round(($enabledPasswordChangedUsersCount / $enabledUsersCount) * 100)
+$privilegedPercentage = [Math]::Round(($privilegedPasswordChangedUsersCount / $privilegedUsersCount) * 100)
+$servicePercentage = [Math]::Round(($servicePasswordChangedUsersCount / $serviceUsersCount) * 100)
+
+# Output results
+Write-Output "`n`n"
+Write-Output "Total number of Active Directory users: $allUsersCount"
+Write-Output "Number of users who changed their password since day $targetedDay of the month: $allPasswordChangedUsersCount"
+Write-Output "Percentage of users who changed their password: $allPercentage%"
+Write-Output "`n`n"
+Write-Output "Total number of enabled Active Directory users: $enabledUsersCount"
+Write-Output "Number of users who changed their password since day $targetedDay of the month: $enabledPasswordChangedUsersCount"
+Write-Output "Percentage of users who changed their password: $enabledPercentage%"
+Write-Output "`n`n"
+Write-Output "Total number of privileged Active Directory users: $privilegedUsersCount"
+Write-Output "Number of users who changed their password since day $targetedDay of the month: $privilegedPasswordChangedUsersCount"
+Write-Output "Percentage of users who changed their password: $privilegedPercentage%"
+Write-Output "`n`n"
+Write-Output "Total number of service Active Directory users: $serviceUsersCount"
+Write-Output "Number of users who changed their password since day $targetedDay of the month: $servicePasswordChangedUsersCount"
+Write-Output "Percentage of users who changed their password: $servicePercentage%"
