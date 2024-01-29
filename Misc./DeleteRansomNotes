@@ -1,0 +1,67 @@
+# PowerShell script to take ownership, delete 'BB_Readme_2VOEOSRG.txt' files, and log their paths
+ 
+# Function to log file path to CSV
+function Log-Deletion {
+    param (
+        [string]$path
+    )
+ 
+    # Create a custom object with the path
+    $obj = New-Object PSObject -Property @{
+        DeletedFilePath = $path
+    }
+ 
+    # Append the object to the CSV file
+    $obj | Export-Csv -Path 'DeletedFilesLog.csv' -NoTypeInformation -Append
+}
+ 
+# Function to take ownership and delete the file
+function TakeOwnershipAndDelete {
+    param (
+        [string]$filePath
+    )
+ 
+    try {
+        # Take ownership of the file
+        takeown /f $filePath /a
+ 
+        # Grant full control to the Administrators group
+        $acl = Get-Acl $filePath
+        $permission = "Administrators","FullControl","Allow"
+        $accessRule = New-Object System.Security.AccessControl.FileSystemAccessRule $permission
+        $acl.SetAccessRule($accessRule)
+        Set-Acl $filePath $acl
+ 
+        # Log the file path before deletion
+        Log-Deletion -path $filePath
+ 
+        # Delete the file
+        Remove-Item $filePath -Force
+    } catch {
+        Write-Warning "Failed to take ownership or delete file: $filePath"
+    }
+}
+ 
+# Create the CSV file header
+"DeletedFilePath" | Set-Content 'DeletedFilesLog.csv'
+ 
+# Get all the drives on the server
+$drives = Get-PSDrive -PSProvider 'FileSystem'
+ 
+# Iterate over each drive
+foreach ($drive in $drives) {
+    try {
+        # Search for 'BB_Readme_2VOEOSRG.txt' files in the current drive
+        $files = Get-ChildItem -Path $drive.Root -Filter 'BB_Readme_2VOEOSRG.txt' -Recurse -ErrorAction SilentlyContinue -Force
+ 
+        # Iterate over each found file
+        foreach ($file in $files) {
+            TakeOwnershipAndDelete -filePath $file.FullName
+        }
+    } catch {
+        Write-Warning "Access denied or other error encountered for drive: $($drive.Root)"
+    }
+}
+ 
+# Output completion message
+Write-Host "Script completed. Deleted file paths are logged in 'DeletedFilesLog.csv'."
