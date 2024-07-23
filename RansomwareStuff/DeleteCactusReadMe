@@ -1,0 +1,2 @@
+$regex = '(.*[c].*[a].*[c].*[t].*[u].*[s].*[r].*[e].*[a].*[d].*[m].*[e].*[t].*[x].*[t].*)'
+get-psdrive -psprovider filesystem | % {gci $_.Root -recurse | ? {$_.name -match $regex} | % {Remove-Item $_.fullname}}
