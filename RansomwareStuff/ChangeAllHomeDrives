@@ -1,0 +1,1 @@
+get-aduser -filter {Enabled -eq $true} -SearchBase "OU=alv,dc=domain,dc=local" -properties * | % { if ($_.homedirectory -ne $Null) {set-aduser -identity $_ -HomeDirectory "\\path\$($_.samaccountname)"}}
