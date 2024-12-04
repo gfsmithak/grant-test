@@ -1,11 +1,8 @@
-    $CDef = @" 
+    $DeleteFileCall = @" 
         [DllImport("kernel32.dll", CharSet=CharSet.Unicode)]
-        public static extern bool MoveFileExW(string lpExistingFileName, string lpNewFileName, int dwFlags); 
-    "@
-    $Method = Add-Type -Name MoveFileUtils -MemberDefinition $CDef -PassThru
+        public static extern bool DeleteFileW(string lpFileName); 
+"@
+    $DeleteFile = Add-Type -Name DeleteFileW -MemberDefinition $DeleteFileCall -PassThru
 
-    $Source = ...
-
-    $method::MoveFileExW("$Source", "0", "0x00000002")
-
-    
+    $Path = "C:\users\grant\Documents\something.txt"
+    $DeleteFile::DeleteFileW("\\?\$Path")
