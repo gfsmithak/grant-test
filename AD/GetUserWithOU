@@ -1,0 +1,4 @@
+$users = Get-ADUser -Filter {enabled -eq $true} -Properties name,userprincipalname, DistinguishedName, PasswordLastSet,telephonenumber | Select-Object name,userprincipalname, @{Name="OU";Expression={$_.DistinguishedName.Split(',')[1,2,3].Substring(3)}}, PasswordLastSet,telephonenumber
+
+
+
