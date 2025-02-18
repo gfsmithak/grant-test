@@ -1,0 +1,23 @@
+##Needs to be a CSV, 1 column with "Files" as the header. See attached a sample CSV.
+$filestofind = import-csv C:\files.csv
+
+##Capture the TA file directory
+$filetree = gci "C:\TAfiletree" -recurse
+
+##location to copy files to
+$destination = "\\exampleserver\share"
+
+
+##Foreach loop to iterate through the files we're looking for
+ foreach ($F in $filestofind) {
+
+##Split out just the file name + last folder. Example:
+##Private\BRaja\Backup\Desktop\Credit card activity.xlsx
+##becomes
+##Desktop\Credit card activity.xlsx
+$string = ($F.files.split("\")[-2]) + "\\" + ($F.files.split("\")[-1])
+
+##match the file name against the TA file tree, copy to share if found
+$filetree | ? {$_.FullName -match ".*$($string)"} | copy-item -Destination $destination
+
+}
