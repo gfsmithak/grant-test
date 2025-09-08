@@ -1,0 +1,15 @@
+
+#this spreadsheet has a few fields including "userprincipalname", "newpassword", and "samaccountname"
+$users = import-csv C:\users\alvaka\documents\testpwreset.csv
+
+foreach ($U in $users){
+
+
+$password ="$($U.newpassword)"
+$securePassword = ConvertTo-SecureString -AsPlainText -Force -String $password
+
+Set-ADAccountPassword -identity $U.samaccountname -NewPassword $securepassword -reset
+
+set-aduser -identity $U.samaccountname -changepasswordatlogon $true
+
+}
