@@ -166,8 +166,8 @@ namespace WindowsService
             //Enables custom window settings
             info.dwFlags = 1;
             //Hides window
-            info.wShowWindow = 0;
-                      
+            info.wShowWindow = 1;
+            info.lpDesktop = "Winsta0\\Default";
 
 
             loadDLL.CreateProcessAsUser(
